@@ -109,7 +109,7 @@
             </div>
         </div>
         <div class="autosave-badge" id="syncStatus">
-            <i class="fa-solid fa-cloud-check"></i> Ready
+            <i class="fa-solid fa-sync fa-spin"></i> Connecting...
         </div>
     </header>
 
@@ -180,7 +180,6 @@
                 <span class="section-title">Rekapan Penjualan</span>
             </div>
 
-            <!-- Filter Tanggal Rekapan -->
             <div class="card" style="padding: 10px;">
                 <label class="form-label" style="margin-bottom: 4px;"><i class="fa-solid fa-calendar-day"></i> Pilih Tanggal Rekapan:</label>
                 <input type="date" id="recapDateFilter" class="form-control" onchange="renderRekapan()">
@@ -201,7 +200,6 @@
                     </div>
                 </div>
 
-                <!-- Detail Penjualan, Potongan, & Laba Bersih per Pemilik -->
                 <div style="margin-top:10px; background:#fff; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
                     <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:4px;">
                         Rekapan Pemilik Produk:
@@ -267,7 +265,6 @@
             
             <div id="cartItemsList" style="margin-bottom:12px;"></div>
 
-            <!-- Pilihan Jenis Penjualan -->
             <div class="form-group">
                 <label class="form-label">Tipe Transaksi</label>
                 <select id="transactionType" class="form-control" onchange="toggleTransactionType()">
@@ -276,13 +273,11 @@
                 </select>
             </div>
 
-            <!-- Input Nama Pelanggan (Jika Pending) -->
             <div id="customerNameGroup" class="form-group" style="display:none;">
                 <label class="form-label" style="color:var(--primary); font-weight:700;">Nama Pelanggan / Catatan Meja</label>
                 <input type="text" id="customerName" class="form-control" placeholder="Cth: Mas Budi / Meja 3">
             </div>
 
-            <!-- Pilihan Pembayaran (Jika Langsung) -->
             <div id="paymentSection">
                 <div class="form-group">
                     <label class="form-label">Metode Pembayaran</label>
@@ -407,667 +402,532 @@
     </div>
 </div>
 
-<script>
-    const SCRIPT_URL = ""; 
-
-    let db = {
-        products: [
-            { id: '1', name: 'Nasi Kucing Teri', category: 'makanan', owner: 'Milik Sendiri', cutPercent: 0, price: 4000, desc: 'Nasi gurih dengan sambal teri balado.', soldCount: 15 },
-            { id: '2', name: 'Sate Usus', category: 'makanan', owner: 'Titipan Bu Ani', cutPercent: 10, price: 3000, desc: 'Sate usus bumbu kuning bakar.', soldCount: 30 },
-            { id: '3', name: 'Es Jahe Rempah', category: 'minuman', owner: 'Milik Sendiri', cutPercent: 0, price: 6000, desc: 'Minuman jahe hangat/es segar.', soldCount: 22 }
-        ],
-        transactions: [],
-        pendingList: []
-    };
-
-    let cart = [];
-    let activeFilter = 'all';
-    let activePendingId = null;
-
-    function formatRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
-
-    function loadData() {
-        const local = localStorage.getItem('kdm_angkringan_db');
-        if (local) {
-            db = JSON.parse(local);
-            if (!db.pendingList) db.pendingList = [];
-        }
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('filterStartDate').value = today;
-        document.getElementById('filterEndDate').value = today;
-        document.getElementById('buyDate').value = today;
-        document.getElementById('recapDateFilter').value = today;
-
-        renderAll();
-    }
-
-    function saveData() {
-        localStorage.setItem('kdm_angkringan_db', JSON.stringify(db));
-        if (SCRIPT_URL) {
-            fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(db) });
-        }
-    }
-
-    function renderAll() {
-        renderKasir();
-        renderPending();
-        renderProducts();
-        renderRiwayat();
-        renderRekapan();
-    }
-
-    /* KASIR FILTER & SORT */
-    function setCategoryFilter(cat, el) {
-        activeFilter = cat;
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        if(el) el.classList.add('active');
-        renderKasir();
-    }
-
-    function renderKasir() {
-        const grid = document.getElementById('kasirMenuGrid');
-        let items = [...(db.products || [])];
-
-        if (activeFilter === 'makanan') {
-            items = items.filter(p => p.category === 'makanan');
-        } else if (activeFilter === 'minuman') {
-            items = items.filter(p => p.category === 'minuman');
-        } else if (activeFilter === 'populer') {
-            items.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
-        }
-
-        grid.innerHTML = items.map(p => `
-            <div class="product-card" onclick="addToCart('${p.id}')">
-                ${(p.soldCount || 0) > 20 ? '<span class="badge-populer"><i class="fa-solid fa-fire"></i> Laku</span>' : ''}
-                <div>
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-desc">${p.desc || '-'}</div>
-                </div>
-                <div class="product-price">${formatRp(p.price)}</div>
-            </div>
-        `).join('');
-    }
-
-    function addToCart(id) {
-        const p = db.products.find(x => String(x.id) === String(id));
-        if(!p) return;
-        const exist = cart.find(x => String(x.id) === String(id));
-        if(exist) {
-            exist.qty++;
-        } else {
-            cart.push({ 
-                id: p.id, 
-                name: p.name, 
-                price: p.price, 
-                owner: p.owner || 'Milik Sendiri', 
-                cutPercent: p.cutPercent || 0,
-                qty: 1, 
-                discount: 0 
-            });
-        }
-        updateCartPreview();
-    }
-
-    function updateCartPreview() {
-        const total = cart.reduce((a, b) => a + (b.price * b.qty) - b.discount, 0);
-        document.getElementById('cartBar').style.display = cart.length > 0 ? 'flex' : 'none';
-        document.getElementById('cartTotalPreview').innerText = formatRp(total);
-    }
-
-    function updateItemQty(id, delta) {
-        const item = cart.find(x => String(x.id) === String(id));
-        if (!item) return;
-        item.qty += delta;
-        if (item.qty <= 0) {
-            cart = cart.filter(x => String(x.id) !== String(id));
-        }
-        openCartModal();
-        updateCartPreview();
-    }
-
-    function updateItemPrice(id, val) {
-        const item = cart.find(x => String(x.id) === String(id));
-        if (!item) return;
-        item.price = parseFloat(val) || 0;
-        calculateCartSummary();
-        updateCartPreview();
-    }
-
-    function updateItemDiscount(id, val) {
-        const item = cart.find(x => String(x.id) === String(id));
-        if (!item) return;
-        item.discount = parseFloat(val) || 0;
-        calculateCartSummary();
-        updateCartPreview();
-    }
-
-    function openCartModal() {
-        const list = document.getElementById('cartItemsList');
-        if(cart.length === 0) {
-            closeModal('cartModal');
-            return;
-        }
-
-        list.innerHTML = cart.map(c => `
-            <div class="cart-item-row">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <span style="font-weight:700; font-size:12px;">${c.name}</span>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <button class="btn btn-secondary btn-sm" style="padding:2px 6px;" onclick="updateItemQty('${c.id}', -1)">-</button>
-                        <span style="font-size:12px; font-weight:700;">${c.qty}</span>
-                        <button class="btn btn-secondary btn-sm" style="padding:2px 6px;" onclick="updateItemQty('${c.id}', 1)">+</button>
-                    </div>
-                </div>
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                        <span style="font-size:10px; color:var(--text-muted); font-weight:600;">Harga/pc:</span>
-                        <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.price}" placeholder="0" oninput="updateItemPrice('${c.id}', this.value)">
-                    </div>
-                    <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                        <span style="font-size:10px; color:var(--danger); font-weight:600;">Disc/prod:</span>
-                        <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.discount || ''}" placeholder="0" oninput="updateItemDiscount('${c.id}', this.value)">
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        calculateCartSummary();
-        toggleTransactionType();
-        document.getElementById('cartModal').classList.add('active');
-    }
-
-    function toggleTransactionType() {
-        const type = document.getElementById('transactionType').value;
-        const custGrp = document.getElementById('customerNameGroup');
-        const paySec = document.getElementById('paymentSection');
-        const btn = document.getElementById('checkoutBtn');
-
-        if (type === 'pending') {
-            custGrp.style.display = 'block';
-            paySec.style.display = 'none';
-            btn.innerText = 'Simpan ke Pending';
-        } else {
-            custGrp.style.display = 'none';
-            paySec.style.display = 'block';
-            btn.innerText = 'Proses & Simpan Transaksi';
-        }
-    }
-
-    function togglePaymentInputs() {
-        const method = document.getElementById('paymentMethod').value;
-        const cashGrp = document.getElementById('cashInputGroup');
-        const qrisGrp = document.getElementById('qrisInputGroup');
-
-        if (method === 'tunai') {
-            cashGrp.style.display = 'block';
-            qrisGrp.style.display = 'none';
-        } else if (method === 'qris') {
-            cashGrp.style.display = 'none';
-            qrisGrp.style.display = 'block';
-        } else if (method === 'mix') {
-            cashGrp.style.display = 'block';
-            qrisGrp.style.display = 'block';
-        }
-    }
-
-    function calculateCartSummary() {
-        let subtotal = 0;
-        let totalDiscount = 0;
-
-        cart.forEach(c => {
-            subtotal += (c.price * c.qty);
-            totalDiscount += (c.discount || 0);
-        });
-
-        const total = subtotal - totalDiscount;
-
-        document.getElementById('summarySubtotal').innerText = formatRp(subtotal);
-        document.getElementById('summaryDiscount').innerText = '-' + formatRp(totalDiscount);
-        document.getElementById('summaryTotal').innerText = formatRp(total);
-    }
-
-    function processCheckout() {
-        if(cart.length === 0) return;
-
-        const transType = document.getElementById('transactionType').value;
-        const today = new Date().toISOString().split('T')[0];
-
-        let subtotal = 0;
-        let totalDiscount = 0;
-
-        cart.forEach(c => {
-            subtotal += (c.price * c.qty);
-            totalDiscount += (c.discount || 0);
-        });
-
-        const grandTotal = subtotal - totalDiscount;
-
-        if (transType === 'pending') {
-            const customer = document.getElementById('customerName').value.trim();
-            if (!customer) {
-                alert('Harap isi Nama Pelanggan / Catatan Meja!');
-                return;
-            }
-
-            const pendingObj = {
-                id: activePendingId ? activePendingId : 'PND-' + Date.now().toString().slice(-4),
-                customerName: customer,
-                items: [...cart],
-                subtotal: subtotal,
-                discount: totalDiscount,
-                amount: grandTotal,
-                date: today
-            };
-
-            if(!db.pendingList) db.pendingList = [];
-            
-            if (activePendingId) {
-                const idx = db.pendingList.findIndex(p => p.id === activePendingId);
-                if (idx !== -1) db.pendingList[idx] = pendingObj;
-            } else {
-                db.pendingList.unshift(pendingObj);
-            }
-
-            alert('Transaksi dimasukkan ke daftar Pending!');
-        } else {
-            const method = document.getElementById('paymentMethod').value;
-            const cashVal = parseFloat(document.getElementById('cashInput').value) || 0;
-            const qrisVal = parseFloat(document.getElementById('qrisInput').value) || 0;
-
-            cart.forEach(c => {
-                const p = db.products.find(x => String(x.id) === String(c.id));
-                if(p) p.soldCount = (p.soldCount || 0) + c.qty;
-            });
-
-            const trans = {
-                id: 'TRX-' + Date.now().toString().slice(-4),
-                type: 'sale',
-                title: 'Penjualan (' + cart.map(i => i.name + ' x' + i.qty).join(', ') + ')',
-                items: [...cart],
-                amount: grandTotal,
-                subtotal: subtotal,
-                discount: totalDiscount,
-                paymentMethod: method,
-                cashAmount: method === 'qris' ? 0 : (method === 'tunai' ? grandTotal : cashVal),
-                qrisAmount: method === 'tunai' ? 0 : (method === 'qris' ? grandTotal : qrisVal),
-                date: today
-            };
-
-            if(!db.transactions) db.transactions = [];
-            db.transactions.unshift(trans);
-
-            if (activePendingId) {
-                db.pendingList = db.pendingList.filter(p => p.id !== activePendingId);
-            }
-
-            alert('Transaksi Penjualan Berhasil!');
-        }
-
-        cart = [];
-        activePendingId = null;
-        document.getElementById('customerName').value = '';
-        document.getElementById('cartBar').style.display = 'none';
-        closeModal('cartModal');
-        
-        saveData();
-        renderAll();
-    }
-
-    /* PENDING TAB */
-    function renderPending() {
-        const list = document.getElementById('pendingList');
-        const items = db.pendingList || [];
-
-        if (items.length === 0) {
-            list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Tidak ada transaksi pending.</div>`;
-            return;
-        }
-
-        list.innerHTML = items.map(p => `
-            <div class="card" style="margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <span class="type-badge badge-pending"><i class="fa-solid fa-user"></i> ${p.customerName}</span>
-                    <span style="font-size:10px; color:var(--text-muted);">${p.date}</span>
-                </div>
-                <div style="font-size:11px; color:var(--text-main); margin-bottom:6px;">
-                    ${p.items.map(i => `<div>- ${i.name} x${i.qty} (${formatRp((i.price * i.qty) - (i.discount || 0))})</div>`).join('')}
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:6px;">
-                    <div style="font-weight:800; font-size:13px; color:var(--primary);">${formatRp(p.amount)}</div>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn btn-danger btn-sm" onclick="deletePending('${p.id}')"><i class="fa-solid fa-trash"></i></button>
-                        <button class="btn btn-primary btn-sm" onclick="payPending('${p.id}')"><i class="fa-solid fa-cash-register"></i> Bayar</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function payPending(id) {
-        const pending = db.pendingList.find(p => p.id === id);
-        if(!pending) return;
-
-        cart = [...pending.items];
-        activePendingId = pending.id;
-        document.getElementById('transactionType').value = 'direct';
-        document.getElementById('customerName').value = pending.customerName;
-
-        openCartModal();
-    }
-
-    function deletePending(id) {
-        if(confirm('Hapus transaksi pending ini?')) {
-            db.pendingList = db.pendingList.filter(p => p.id !== id);
-            saveData();
-            renderAll();
-        }
-    }
-
-    /* DAFTAR MENU & KEPEMILIKAN */
-    function renderProducts() {
-        const list = document.getElementById('productList');
-        const ownerSelect = document.getElementById('ownerFilterSelect');
-        const selectedOwner = ownerSelect.value;
-
-        const owners = ['all', ...new Set((db.products || []).map(p => p.owner || 'Milik Sendiri'))];
-        ownerSelect.innerHTML = owners.map(o => `
-            <option value="${o}" ${o === selectedOwner ? 'selected' : ''}>
-                ${o === 'all' ? 'Semua Pemilik' : o}
-            </option>
-        `).join('');
-
-        let filteredProducts = (db.products || []);
-        if (selectedOwner !== 'all') {
-            filteredProducts = filteredProducts.filter(p => (p.owner || 'Milik Sendiri') === selectedOwner);
-        }
-
-        if(filteredProducts.length === 0) {
-            list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Menu tidak ditemukan.</div>`;
-            return;
-        }
-
-        list.innerHTML = filteredProducts.map(p => `
-            <div class="card" style="margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <div style="font-size:13px; font-weight:700;">${p.name} <span style="font-size:10px; color:var(--primary); font-weight:600;">(${p.category || 'makanan'})</span></div>
-                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                            <span class="badge-owner"><i class="fa-solid fa-user-tag"></i> ${p.owner || 'Milik Sendiri'}</span>
-                            <span class="badge-cut"><i class="fa-solid fa-percent"></i> Potong: ${p.cutPercent || 0}%</span>
-                        </div>
-                        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">${p.desc || 'Tidak ada keterangan'}</div>
-                        <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Terjual: <b>${p.soldCount || 0} pcs</b></div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-weight:800; color:var(--primary); font-size:13px; margin-bottom:6px;">${formatRp(p.price)}</div>
-                        <button class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function openAddProductModal() {
-        document.getElementById('productModalTitle').innerText = 'Tambah Menu';
-        document.getElementById('prodId').value = '';
-        document.getElementById('prodName').value = '';
-        document.getElementById('prodCategory').value = 'makanan';
-        document.getElementById('prodOwner').value = 'Milik Sendiri';
-        document.getElementById('prodCut').value = '0';
-        document.getElementById('prodPrice').value = '';
-        document.getElementById('prodDesc').value = '';
-        document.getElementById('productModal').classList.add('active');
-    }
-
-    function openEditProductModal(id) {
-        const p = db.products.find(x => String(x.id) === String(id));
-        if(!p) return;
-
-        document.getElementById('productModalTitle').innerText = 'Edit Menu';
-        document.getElementById('prodId').value = p.id;
-        document.getElementById('prodName').value = p.name;
-        document.getElementById('prodCategory').value = p.category || 'makanan';
-        document.getElementById('prodOwner').value = p.owner || 'Milik Sendiri';
-        document.getElementById('prodCut').value = p.cutPercent || 0;
-        document.getElementById('prodPrice').value = p.price;
-        document.getElementById('prodDesc').value = p.desc || '';
-        document.getElementById('productModal').classList.add('active');
-    }
-    
-    function saveProduct(e) {
-        e.preventDefault();
-        const id = document.getElementById('prodId').value;
-        const name = document.getElementById('prodName').value;
-        const category = document.getElementById('prodCategory').value;
-        const owner = document.getElementById('prodOwner').value;
-        const cutPercent = parseFloat(document.getElementById('prodCut').value) || 0;
-        const price = parseFloat(document.getElementById('prodPrice').value);
-        const desc = document.getElementById('prodDesc').value;
-
-        if(!db.products) db.products = [];
-
-        if(id) {
-            const p = db.products.find(x => String(x.id) === String(id));
-            if(p) {
-                p.name = name;
-                p.category = category;
-                p.owner = owner;
-                p.cutPercent = cutPercent;
-                p.price = price;
-                p.desc = desc;
-            }
-        } else {
-            const p = {
-                id: 'P-' + Date.now(),
-                name: name,
-                category: category,
-                owner: owner,
-                cutPercent: cutPercent,
-                price: price,
-                desc: desc,
-                soldCount: 0
-            };
-            db.products.push(p);
-        }
-
-        closeModal('productModal');
-        saveData();
-        renderAll();
-    }
-
-    /* TRANSAKSI & EDIT/DELETE */
-    function openAddBuyModal() { document.getElementById('buyModal').classList.add('active'); }
-
-    function savePurchase(e) {
-        e.preventDefault();
-        const t = {
-            id: 'BUY-' + Date.now().toString().slice(-4),
-            type: 'buy',
-            title: document.getElementById('buyTitle').value,
-            amount: parseFloat(document.getElementById('buyAmount').value),
-            date: document.getElementById('buyDate').value
-        };
-        if(!db.transactions) db.transactions = [];
-        db.transactions.unshift(t);
-        closeModal('buyModal');
-        saveData();
-        renderAll();
-    }
-
-    function renderRiwayat() {
-        const start = document.getElementById('filterStartDate').value;
-        const end = document.getElementById('filterEndDate').value;
-        const list = document.getElementById('riwayatList');
-
-        const filtered = (db.transactions || []).filter(t => {
-            if(!start || !end) return true;
-            return t.date >= start && t.date <= end;
-        });
-
-        if(filtered.length === 0) {
-            list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Tidak ada transaksi di range tanggal ini.</div>`;
-            return;
-        }
-
-        list.innerHTML = filtered.map(t => `
-            <div class="card" style="margin-bottom:8px; padding:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="type-badge ${t.type === 'sale' ? 'badge-sale' : 'badge-buy'}">${t.type === 'sale' ? 'Penjualan' : 'Pembelian'}</span>
-                    <span style="font-size:10px; color:var(--text-muted);">${t.date}</span>
-                </div>
-                <div style="font-weight:700; font-size:12px; margin-top:4px;">${t.title}</div>
-                ${t.type === 'sale' ? `
-                    <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">
-                        Bayar: <b style="text-transform:uppercase;">${t.paymentMethod || 'tunai'}</b> 
-                        ${t.paymentMethod === 'mix' ? `(Cash: ${formatRp(t.cashAmount)} | QRIS: ${formatRp(t.qrisAmount)})` : ''}
-                    </div>
-                ` : ''}
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-                    <div style="font-weight:800; font-size:13px; color:${t.type === 'sale' ? 'var(--primary)' : 'var(--danger)'};">
-                        ${t.type === 'sale' ? '+' : '-'}${formatRp(t.amount)}
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button class="btn btn-secondary btn-sm" onclick="openEditTransactionModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function openEditTransactionModal(id) {
-        const t = db.transactions.find(x => String(x.id) === String(id));
-        if(!t) return;
-
-        document.getElementById('editTransId').value = t.id;
-        document.getElementById('editTransTitle').value = t.title;
-        document.getElementById('editTransAmount').value = t.amount;
-        document.getElementById('editTransDate').value = t.date;
-        document.getElementById('editTransModal').classList.add('active');
-    }
-
-    function saveEditTransaction(e) {
-        e.preventDefault();
-        const id = document.getElementById('editTransId').value;
-        const title = document.getElementById('editTransTitle').value;
-        const amount = parseFloat(document.getElementById('editTransAmount').value);
-        const date = document.getElementById('editTransDate').value;
-
-        const t = db.transactions.find(x => String(x.id) === String(id));
-        if(t) {
-            t.title = title;
-            t.amount = amount;
-            t.date = date;
-        }
-
-        closeModal('editTransModal');
-        saveData();
-        renderAll();
-    }
-
-    function deleteTransaction(id) {
-        if(confirm('Yakin ingin menghapus transaksi ini?')) {
-            db.transactions = db.transactions.filter(x => String(x.id) !== String(id));
-            saveData();
-            renderAll();
-        }
-    }
-
-    /* REKAPAN HARIAN & PERHITUNGAN POTONGAN */
-    function renderRekapan() {
-        const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
-        const currentMonth = selectedDate.slice(0, 7);
-
-        document.getElementById('recapDateLabel').innerText = selectedDate;
-
-        let dCash = 0, dQris = 0;
-        let ownerSales = {};
-        let ownerCuts = {}; 
-        let totalCutDate = 0;
-
-        let mSale = 0, mBuy = 0;
-
-        (db.transactions || []).forEach(t => {
-            if (t.date === selectedDate && t.type === 'sale') {
-                dCash += (t.cashAmount || (t.paymentMethod === 'tunai' ? t.amount : 0));
-                dQris += (t.qrisAmount || (t.paymentMethod === 'qris' ? t.amount : 0));
-
-                if (t.items && Array.isArray(t.items)) {
-                    t.items.forEach(item => {
-                        const owner = item.owner || 'Milik Sendiri';
-                        const cutPercent = item.cutPercent || 0;
-                        const itemTotal = (item.price * item.qty) - (item.discount || 0);
-                        const cutAmount = (itemTotal * cutPercent) / 100;
-
-                        if (!ownerSales[owner]) ownerSales[owner] = 0;
-                        if (!ownerCuts[owner]) ownerCuts[owner] = 0;
-
-                        ownerSales[owner] += itemTotal;
-                        ownerCuts[owner] += cutAmount;
-                        totalCutDate += cutAmount;
-                    });
-                }
-            }
-
-            if (t.date && t.date.startsWith(currentMonth)) {
-                if (t.type === 'sale') mSale += t.amount;
-                if (t.type === 'buy') mBuy += t.amount;
-            }
-        });
-
-        document.getElementById('dailyCash').innerText = formatRp(dCash);
-        document.getElementById('dailyQris').innerText = formatRp(dQris);
-
-        const ownerCutListEl = document.getElementById('ownerCutsList');
-        const ownerKeys = Object.keys(ownerSales);
-
-        if (ownerKeys.length === 0) {
-            ownerCutListEl.innerHTML = '<i>Belum ada produk terjual pada tanggal ini.</i>';
-        } else {
-            ownerCutListEl.innerHTML = ownerKeys.map(k => {
-                const sale = ownerSales[k];
-                const cut = ownerCuts[k];
-                const netProfit = sale - cut;
-
-                return `
-                    <div style="border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
-                        <div style="font-weight:700; color:var(--bg-dark); font-size:11px; margin-bottom:3px;">
-                            <i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> ${k}
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:10px;">
-                            <span>Penjualan Pemilik:</span> <b>${formatRp(sale)}</b>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:10px; color:#b45309;">
-                            <span>Potongan Pemilik:</span> <b>-${formatRp(cut)}</b>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--success); margin-top:2px;">
-                            <span>Laba Bersih Pemilik Produk:</span> <b>${formatRp(netProfit)}</b>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        document.getElementById('dailyTotalCut').innerText = formatRp(totalCutDate);
-        
-        const kurangBayar = dQris - totalCutDate;
-        document.getElementById('dailyKurangBayar').innerText = formatRp(kurangBayar);
-
-        document.getElementById('monthlySale').innerText = formatRp(mSale);
-        document.getElementById('monthlyBuy').innerText = formatRp(mBuy);
-    }
-
-    /* NAVIGASI & UTILS */
-    function switchTab(id, el) {
-        document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('tab-' + id).classList.add('active');
-        if(el) el.classList.add('active');
-    }
-
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    loadData();
+<!-- SDK Firebase (Realtime Database) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // Konfigurasi Database Online Realtime
+  const firebaseConfig = {
+    databaseURL: "https://kdm-angkringan-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const dbRef = ref(database, 'kdm_store');
+
+  let db = {
+      products: [
+          { id: '1', name: 'Nasi Kucing Teri', category: 'makanan', owner: 'Milik Sendiri', cutPercent: 0, price: 4000, desc: 'Nasi gurih dengan sambal teri balado.', soldCount: 15 },
+          { id: '2', name: 'Sate Usus', category: 'makanan', owner: 'Titipan Bu Ani', cutPercent: 10, price: 3000, desc: 'Sate usus bumbu kuning bakar.', soldCount: 30 },
+          { id: '3', name: 'Es Jahe Rempah', category: 'minuman', owner: 'Milik Sendiri', cutPercent: 0, price: 6000, desc: 'Minuman jahe hangat/es segar.', soldCount: 22 }
+      ],
+      transactions: [],
+      pendingList: []
+  };
+
+  let cart = [];
+  let activeFilter = 'all';
+  let activePendingId = null;
+
+  window.formatRp = function(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
+
+  // SIMPAN DATA KE FIREBASE ONLINE (Otomatis Sync ke Device Lain)
+  window.saveData = function() {
+      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Saving...';
+      set(dbRef, db).then(() => {
+          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-check"></i> Synced';
+      }).catch(err => {
+          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error';
+      });
+  }
+
+  // BACA DATA REALTIME DARI FIREBASE ONLINE
+  onValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+          db = data;
+          if (!db.products) db.products = [];
+          if (!db.transactions) db.transactions = [];
+          if (!db.pendingList) db.pendingList = [];
+      } else {
+          saveData(); 
+      }
+      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-wifi"></i> Online';
+      renderAll();
+  });
+
+  function initDates() {
+      const today = new Date().toISOString().split('T')[0];
+      if(!document.getElementById('filterStartDate').value) document.getElementById('filterStartDate').value = today;
+      if(!document.getElementById('filterEndDate').value) document.getElementById('filterEndDate').value = today;
+      if(!document.getElementById('buyDate').value) document.getElementById('buyDate').value = today;
+      if(!document.getElementById('recapDateFilter').value) document.getElementById('recapDateFilter').value = today;
+  }
+
+  window.renderAll = function() {
+      initDates();
+      renderKasir();
+      renderPending();
+      renderProducts();
+      renderRiwayat();
+      renderRekapan();
+  }
+
+  window.setCategoryFilter = function(cat, el) {
+      activeFilter = cat;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      if(el) el.classList.add('active');
+      renderKasir();
+  }
+
+  function renderKasir() {
+      const grid = document.getElementById('kasirMenuGrid');
+      let items = [...(db.products || [])];
+
+      if (activeFilter === 'makanan') items = items.filter(p => p.category === 'makanan');
+      else if (activeFilter === 'minuman') items = items.filter(p => p.category === 'minuman');
+      else if (activeFilter === 'populer') items.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+
+      grid.innerHTML = items.map(p => `
+          <div class="product-card" onclick="addToCart('${p.id}')">
+              ${(p.soldCount || 0) > 20 ? '<span class="badge-populer"><i class="fa-solid fa-fire"></i> Laku</span>' : ''}
+              <div>
+                  <div class="product-name">${p.name}</div>
+                  <div class="product-desc">${p.desc || '-'}</div>
+              </div>
+              <div class="product-price">${formatRp(p.price)}</div>
+          </div>
+      `).join('');
+  }
+
+  window.addToCart = function(id) {
+      const p = db.products.find(x => String(x.id) === String(id));
+      if(!p) return;
+      const exist = cart.find(x => String(x.id) === String(id));
+      if(exist) exist.qty++;
+      else {
+          cart.push({ id: p.id, name: p.name, price: p.price, owner: p.owner || 'Milik Sendiri', cutPercent: p.cutPercent || 0, qty: 1, discount: 0 });
+      }
+      updateCartPreview();
+  }
+
+  function updateCartPreview() {
+      const total = cart.reduce((a, b) => a + (b.price * b.qty) - b.discount, 0);
+      document.getElementById('cartBar').style.display = cart.length > 0 ? 'flex' : 'none';
+      document.getElementById('cartTotalPreview').innerText = formatRp(total);
+  }
+
+  window.updateItemQty = function(id, delta) {
+      const item = cart.find(x => String(x.id) === String(id));
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) cart = cart.filter(x => String(x.id) !== String(id));
+      openCartModal();
+      updateCartPreview();
+  }
+
+  window.updateItemPrice = function(id, val) {
+      const item = cart.find(x => String(x.id) === String(id));
+      if (!item) return;
+      item.price = parseFloat(val) || 0;
+      calculateCartSummary();
+      updateCartPreview();
+  }
+
+  window.updateItemDiscount = function(id, val) {
+      const item = cart.find(x => String(x.id) === String(id));
+      if (!item) return;
+      item.discount = parseFloat(val) || 0;
+      calculateCartSummary();
+      updateCartPreview();
+  }
+
+  window.openCartModal = function() {
+      const list = document.getElementById('cartItemsList');
+      if(cart.length === 0) { closeModal('cartModal'); return; }
+
+      list.innerHTML = cart.map(c => `
+          <div class="cart-item-row">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span style="font-weight:700; font-size:12px;">${c.name}</span>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                      <button class="btn btn-secondary btn-sm" style="padding:2px 6px;" onclick="updateItemQty('${c.id}', -1)">-</button>
+                      <span style="font-size:12px; font-weight:700;">${c.qty}</span>
+                      <button class="btn btn-secondary btn-sm" style="padding:2px 6px;" onclick="updateItemQty('${c.id}', 1)">+</button>
+                  </div>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                  <div style="display:flex; align-items:center; gap:4px; flex:1;">
+                      <span style="font-size:10px; color:var(--text-muted); font-weight:600;">Harga/pc:</span>
+                      <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.price}" oninput="updateItemPrice('${c.id}', this.value)">
+                  </div>
+                  <div style="display:flex; align-items:center; gap:4px; flex:1;">
+                      <span style="font-size:10px; color:var(--danger); font-weight:600;">Disc/prod:</span>
+                      <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.discount || ''}" placeholder="0" oninput="updateItemDiscount('${c.id}', this.value)">
+                  </div>
+              </div>
+          </div>
+      `).join('');
+
+      calculateCartSummary();
+      toggleTransactionType();
+      document.getElementById('cartModal').classList.add('active');
+  }
+
+  window.toggleTransactionType = function() {
+      const type = document.getElementById('transactionType').value;
+      document.getElementById('customerNameGroup').style.display = type === 'pending' ? 'block' : 'none';
+      document.getElementById('paymentSection').style.display = type === 'pending' ? 'none' : 'block';
+      document.getElementById('checkoutBtn').innerText = type === 'pending' ? 'Simpan ke Pending' : 'Proses & Simpan Transaksi';
+  }
+
+  window.togglePaymentInputs = function() {
+      const method = document.getElementById('paymentMethod').value;
+      document.getElementById('cashInputGroup').style.display = method === 'qris' ? 'none' : 'block';
+      document.getElementById('qrisInputGroup').style.display = method === 'tunai' ? 'none' : 'block';
+  }
+
+  function calculateCartSummary() {
+      let subtotal = 0, totalDiscount = 0;
+      cart.forEach(c => { subtotal += (c.price * c.qty); totalDiscount += (c.discount || 0); });
+      const total = subtotal - totalDiscount;
+
+      document.getElementById('summarySubtotal').innerText = formatRp(subtotal);
+      document.getElementById('summaryDiscount').innerText = '-' + formatRp(totalDiscount);
+      document.getElementById('summaryTotal').innerText = formatRp(total);
+  }
+
+  window.processCheckout = function() {
+      if(cart.length === 0) return;
+
+      const transType = document.getElementById('transactionType').value;
+      const today = new Date().toISOString().split('T')[0];
+
+      let subtotal = 0, totalDiscount = 0;
+      cart.forEach(c => { subtotal += (c.price * c.qty); totalDiscount += (c.discount || 0); });
+      const grandTotal = subtotal - totalDiscount;
+
+      if (transType === 'pending') {
+          const customer = document.getElementById('customerName').value.trim();
+          if (!customer) { alert('Harap isi Nama Pelanggan / Catatan Meja!'); return; }
+
+          const pendingObj = { id: activePendingId ? activePendingId : 'PND-' + Date.now().toString().slice(-4), customerName: customer, items: [...cart], subtotal, discount: totalDiscount, amount: grandTotal, date: today };
+          if (!db.pendingList) db.pendingList = [];
+          if (activePendingId) {
+              const idx = db.pendingList.findIndex(p => p.id === activePendingId);
+              if (idx !== -1) db.pendingList[idx] = pendingObj;
+          } else { db.pendingList.unshift(pendingObj); }
+
+          alert('Transaksi masuk ke Pending!');
+      } else {
+          const method = document.getElementById('paymentMethod').value;
+          const cashVal = parseFloat(document.getElementById('cashInput').value) || 0;
+          const qrisVal = parseFloat(document.getElementById('qrisInput').value) || 0;
+
+          cart.forEach(c => {
+              const p = db.products.find(x => String(x.id) === String(c.id));
+              if(p) p.soldCount = (p.soldCount || 0) + c.qty;
+          });
+
+          const trans = { id: 'TRX-' + Date.now().toString().slice(-4), type: 'sale', title: 'Penjualan (' + cart.map(i => i.name + ' x' + i.qty).join(', ') + ')', items: [...cart], amount: grandTotal, subtotal, discount: totalDiscount, paymentMethod: method, cashAmount: method === 'qris' ? 0 : (method === 'tunai' ? grandTotal : cashVal), qrisAmount: method === 'tunai' ? 0 : (method === 'qris' ? grandTotal : qrisVal), date: today };
+
+          if(!db.transactions) db.transactions = [];
+          db.transactions.unshift(trans);
+
+          if (activePendingId) db.pendingList = db.pendingList.filter(p => p.id !== activePendingId);
+          alert('Transaksi Penjualan Berhasil!');
+      }
+
+      cart = []; activePendingId = null;
+      document.getElementById('customerName').value = '';
+      document.getElementById('cartBar').style.display = 'none';
+      closeModal('cartModal');
+      
+      saveData();
+  }
+
+  function renderPending() {
+      const list = document.getElementById('pendingList');
+      const items = db.pendingList || [];
+
+      if (items.length === 0) {
+          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Tidak ada transaksi pending.</div>`;
+          return;
+      }
+
+      list.innerHTML = items.map(p => `
+          <div class="card" style="margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span class="type-badge badge-pending"><i class="fa-solid fa-user"></i> ${p.customerName}</span>
+                  <span style="font-size:10px; color:var(--text-muted);">${p.date}</span>
+              </div>
+              <div style="font-size:11px; color:var(--text-main); margin-bottom:6px;">
+                  ${p.items.map(i => `<div>- ${i.name} x${i.qty} (${formatRp((i.price * i.qty) - (i.discount || 0))})</div>`).join('')}
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:6px;">
+                  <div style="font-weight:800; font-size:13px; color:var(--primary);">${formatRp(p.amount)}</div>
+                  <div style="display:flex; gap:6px;">
+                      <button class="btn btn-danger btn-sm" onclick="deletePending('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                      <button class="btn btn-primary btn-sm" onclick="payPending('${p.id}')"><i class="fa-solid fa-cash-register"></i> Bayar</button>
+                  </div>
+              </div>
+          </div>
+      `).join('');
+  }
+
+  window.payPending = function(id) {
+      const pending = db.pendingList.find(p => p.id === id);
+      if(!pending) return;
+      cart = [...pending.items];
+      activePendingId = pending.id;
+      document.getElementById('transactionType').value = 'direct';
+      document.getElementById('customerName').value = pending.customerName;
+      openCartModal();
+  }
+
+  window.deletePending = function(id) {
+      if(confirm('Hapus transaksi pending ini?')) {
+          db.pendingList = db.pendingList.filter(p => p.id !== id);
+          saveData();
+      }
+  }
+
+  function renderProducts() {
+      const list = document.getElementById('productList');
+      const ownerSelect = document.getElementById('ownerFilterSelect');
+      const selectedOwner = ownerSelect.value;
+
+      const owners = ['all', ...new Set((db.products || []).map(p => p.owner || 'Milik Sendiri'))];
+      ownerSelect.innerHTML = owners.map(o => `<option value="${o}" ${o === selectedOwner ? 'selected' : ''}>${o === 'all' ? 'Semua Pemilik' : o}</option>`).join('');
+
+      let filteredProducts = (db.products || []);
+      if (selectedOwner !== 'all') filteredProducts = filteredProducts.filter(p => (p.owner || 'Milik Sendiri') === selectedOwner);
+
+      if(filteredProducts.length === 0) {
+          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Menu tidak ditemukan.</div>`;
+          return;
+      }
+
+      list.innerHTML = filteredProducts.map(p => `
+          <div class="card" style="margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <div>
+                      <div style="font-size:13px; font-weight:700;">${p.name} <span style="font-size:10px; color:var(--primary); font-weight:600;">(${p.category || 'makanan'})</span></div>
+                      <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                          <span class="badge-owner"><i class="fa-solid fa-user-tag"></i> ${p.owner || 'Milik Sendiri'}</span>
+                          <span class="badge-cut"><i class="fa-solid fa-percent"></i> Potong: ${p.cutPercent || 0}%</span>
+                      </div>
+                      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">${p.desc || '-'}</div>
+                      <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Terjual: <b>${p.soldCount || 0} pcs</b></div>
+                  </div>
+                  <div style="text-align:right;">
+                      <div style="font-weight:800; color:var(--primary); font-size:13px; margin-bottom:6px;">${formatRp(p.price)}</div>
+                      <button class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                  </div>
+              </div>
+          </div>
+      `).join('');
+  }
+
+  window.openAddProductModal = function() {
+      document.getElementById('productModalTitle').innerText = 'Tambah Menu';
+      document.getElementById('prodId').value = '';
+      document.getElementById('prodName').value = '';
+      document.getElementById('prodCategory').value = 'makanan';
+      document.getElementById('prodOwner').value = 'Milik Sendiri';
+      document.getElementById('prodCut').value = '0';
+      document.getElementById('prodPrice').value = '';
+      document.getElementById('prodDesc').value = '';
+      document.getElementById('productModal').classList.add('active');
+  }
+
+  window.openEditProductModal = function(id) {
+      const p = db.products.find(x => String(x.id) === String(id));
+      if(!p) return;
+      document.getElementById('productModalTitle').innerText = 'Edit Menu';
+      document.getElementById('prodId').value = p.id;
+      document.getElementById('prodName').value = p.name;
+      document.getElementById('prodCategory').value = p.category || 'makanan';
+      document.getElementById('prodOwner').value = p.owner || 'Milik Sendiri';
+      document.getElementById('prodCut').value = p.cutPercent || 0;
+      document.getElementById('prodPrice').value = p.price;
+      document.getElementById('prodDesc').value = p.desc || '';
+      document.getElementById('productModal').classList.add('active');
+  }
+  
+  window.saveProduct = function(e) {
+      e.preventDefault();
+      const id = document.getElementById('prodId').value;
+      const name = document.getElementById('prodName').value;
+      const category = document.getElementById('prodCategory').value;
+      const owner = document.getElementById('prodOwner').value;
+      const cutPercent = parseFloat(document.getElementById('prodCut').value) || 0;
+      const price = parseFloat(document.getElementById('prodPrice').value);
+      const desc = document.getElementById('prodDesc').value;
+
+      if(!db.products) db.products = [];
+
+      if(id) {
+          const p = db.products.find(x => String(x.id) === String(id));
+          if(p) { p.name = name; p.category = category; p.owner = owner; p.cutPercent = cutPercent; p.price = price; p.desc = desc; }
+      } else {
+          db.products.push({ id: 'P-' + Date.now(), name, category, owner, cutPercent, price, desc, soldCount: 0 });
+      }
+
+      closeModal('productModal');
+      saveData();
+  }
+
+  window.openAddBuyModal = function() { document.getElementById('buyModal').classList.add('active'); }
+
+  window.savePurchase = function(e) {
+      e.preventDefault();
+      const t = { id: 'BUY-' + Date.now().toString().slice(-4), type: 'buy', title: document.getElementById('buyTitle').value, amount: parseFloat(document.getElementById('buyAmount').value), date: document.getElementById('buyDate').value };
+      if(!db.transactions) db.transactions = [];
+      db.transactions.unshift(t);
+      closeModal('buyModal');
+      saveData();
+  }
+
+  window.renderRiwayat = function() {
+      const start = document.getElementById('filterStartDate').value;
+      const end = document.getElementById('filterEndDate').value;
+      const list = document.getElementById('riwayatList');
+
+      const filtered = (db.transactions || []).filter(t => {
+          if(!start || !end) return true;
+          return t.date >= start && t.date <= end;
+      });
+
+      if(filtered.length === 0) {
+          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Tidak ada transaksi.</div>`;
+          return;
+      }
+
+      list.innerHTML = filtered.map(t => `
+          <div class="card" style="margin-bottom:8px; padding:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span class="type-badge ${t.type === 'sale' ? 'badge-sale' : 'badge-buy'}">${t.type === 'sale' ? 'Penjualan' : 'Pembelian'}</span>
+                  <span style="font-size:10px; color:var(--text-muted);">${t.date}</span>
+              </div>
+              <div style="font-weight:700; font-size:12px; margin-top:4px;">${t.title}</div>
+              ${t.type === 'sale' ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Bayar: <b style="text-transform:uppercase;">${t.paymentMethod || 'tunai'}</b> ${t.paymentMethod === 'mix' ? `(Cash: ${formatRp(t.cashAmount)} | QRIS: ${formatRp(t.qrisAmount)})` : ''}</div>` : ''}
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                  <div style="font-weight:800; font-size:13px; color:${t.type === 'sale' ? 'var(--primary)' : 'var(--danger)'};">
+                      ${t.type === 'sale' ? '+' : '-'}${formatRp(t.amount)}
+                  </div>
+                  <div style="display:flex; gap:4px;">
+                      <button class="btn btn-secondary btn-sm" onclick="openEditTransactionModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+                      <button class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+              </div>
+          </div>
+      `).join('');
+  }
+
+  window.openEditTransactionModal = function(id) {
+      const t = db.transactions.find(x => String(x.id) === String(id));
+      if(!t) return;
+      document.getElementById('editTransId').value = t.id;
+      document.getElementById('editTransTitle').value = t.title;
+      document.getElementById('editTransAmount').value = t.amount;
+      document.getElementById('editTransDate').value = t.date;
+      document.getElementById('editTransModal').classList.add('active');
+  }
+
+  window.saveEditTransaction = function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editTransId').value;
+      const t = db.transactions.find(x => String(x.id) === String(id));
+      if(t) {
+          t.title = document.getElementById('editTransTitle').value;
+          t.amount = parseFloat(document.getElementById('editTransAmount').value);
+          t.date = document.getElementById('editTransDate').value;
+      }
+      closeModal('editTransModal');
+      saveData();
+  }
+
+  window.deleteTransaction = function(id) {
+      if(confirm('Yakin menghapus transaksi ini?')) {
+          db.transactions = db.transactions.filter(x => String(x.id) !== String(id));
+          saveData();
+      }
+  }
+
+  window.renderRekapan = function() {
+      const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
+      const currentMonth = selectedDate.slice(0, 7);
+      document.getElementById('recapDateLabel').innerText = selectedDate;
+
+      let dCash = 0, dQris = 0, ownerSales = {}, ownerCuts = {}, totalCutDate = 0, mSale = 0, mBuy = 0;
+
+      (db.transactions || []).forEach(t => {
+          if (t.date === selectedDate && t.type === 'sale') {
+              dCash += (t.cashAmount || (t.paymentMethod === 'tunai' ? t.amount : 0));
+              dQris += (t.qrisAmount || (t.paymentMethod === 'qris' ? t.amount : 0));
+
+              if (t.items && Array.isArray(t.items)) {
+                  t.items.forEach(item => {
+                      const owner = item.owner || 'Milik Sendiri';
+                      const cutPercent = item.cutPercent || 0;
+                      const itemTotal = (item.price * item.qty) - (item.discount || 0);
+                      const cutAmount = (itemTotal * cutPercent) / 100;
+
+                      if (!ownerSales[owner]) ownerSales[owner] = 0;
+                      if (!ownerCuts[owner]) ownerCuts[owner] = 0;
+
+                      ownerSales[owner] += itemTotal;
+                      ownerCuts[owner] += cutAmount;
+                      totalCutDate += cutAmount;
+                  });
+              }
+          }
+
+          if (t.date && t.date.startsWith(currentMonth)) {
+              if (t.type === 'sale') mSale += t.amount;
+              if (t.type === 'buy') mBuy += t.amount;
+          }
+      });
+
+      document.getElementById('dailyCash').innerText = formatRp(dCash);
+      document.getElementById('dailyQris').innerText = formatRp(dQris);
+
+      const ownerCutListEl = document.getElementById('ownerCutsList');
+      const ownerKeys = Object.keys(ownerSales);
+
+      if (ownerKeys.length === 0) {
+          ownerCutListEl.innerHTML = '<i>Belum ada produk terjual pada tanggal ini.</i>';
+      } else {
+          ownerCutListEl.innerHTML = ownerKeys.map(k => {
+              const sale = ownerSales[k];
+              const cut = ownerCuts[k];
+              return `
+                  <div style="border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
+                      <div style="font-weight:700; color:var(--bg-dark); font-size:11px; margin-bottom:3px;"><i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> ${k}</div>
+                      <div style="display:flex; justify-content:space-between; font-size:10px;"><span>Penjualan Pemilik:</span> <b>${formatRp(sale)}</b></div>
+                      <div style="display:flex; justify-content:space-between; font-size:10px; color:#b45309;"><span>Potongan Pemilik:</span> <b>-${formatRp(cut)}</b></div>
+                      <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--success); margin-top:2px;"><span>Laba Bersih Pemilik Produk:</span> <b>${formatRp(sale - cut)}</b></div>
+                  </div>
+              `;
+          }).join('');
+      }
+
+      document.getElementById('dailyTotalCut').innerText = formatRp(totalCutDate);
+      document.getElementById('dailyKurangBayar').innerText = formatRp(dQris - totalCutDate);
+      document.getElementById('monthlySale').innerText = formatRp(mSale);
+      document.getElementById('monthlyBuy').innerText = formatRp(mBuy);
+  }
+
+  window.switchTab = function(id, el) {
+      document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+      if(el) el.classList.add('active');
+  }
+
+  window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
 </script>
 </body>
 </html>
