@@ -402,8 +402,8 @@
 </div>
 
 <script>
-  // PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFprIp6ztfIC8U8-4UTgLIbMX0OQpiRb1BRwI5gzFmA89rYEyWx8lcjLaRCYKC9ICMuQ/exec";
+  // GANTI URL DI BAWAH INI DENGAN URL GOOGLE APPS SCRIPT ANDA
+  const SCRIPT_URL = "https://script.google.com/macros/library/d/1jwA0DKR7tsJmZ_sEcxKXdGxaFLvavOfmqef1dI9SlAxDDlzVfDqukI_E/4";
 
   let db = { products: [], transactions: [], pendingList: [] };
   let cart = [];
@@ -412,28 +412,58 @@
 
   window.formatRp = function(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
-  // 1. TAMPILKAN / MINTA DATA DARI GOOGLE SHEETS
+  // 1. AMBIL DATA DARI LOCAL STORAGE KEMUDIAN GOOGLE SHEETS
   function fetchDataFromSheet() {
-      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Sync...';
-      fetch(SCRIPT_URL)
-          .then(res => res.json())
-          .then(data => {
-              if(data) {
-                  db.products = data.products || [];
-                  db.transactions = data.transactions || [];
-                  db.pendingList = data.pendingList || [];
-              }
-              document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Active';
-              renderAll();
-          })
-          .catch(err => {
-              document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error Sync';
-          });
+      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Loading...';
+      
+      // Ambil data lokal terlebih dahulu agar data tidak hilang saat direfresh
+      const localProducts = localStorage.getItem('kdm_products');
+      const localTransactions = localStorage.getItem('kdm_transactions');
+      const localPending = localStorage.getItem('kdm_pending');
+
+      if (localProducts) db.products = JSON.parse(localProducts);
+      if (localTransactions) db.transactions = JSON.parse(localTransactions);
+      if (localPending) db.pendingList = JSON.parse(localPending);
+      
+      renderAll();
+
+      // Minta data terbaru dari Google Sheets
+      if (SCRIPT_URL && SCRIPT_URL !== "ISI_DENGAN_URL_WEB_APP_ANDA") {
+          fetch(SCRIPT_URL)
+              .then(res => res.json())
+              .then(data => {
+                  if (data) {
+                      if (data.products && data.products.length > 0) db.products = data.products;
+                      if (data.transactions && data.transactions.length > 0) db.transactions = data.transactions;
+                      if (data.pendingList) db.pendingList = data.pendingList;
+
+                      localStorage.setItem('kdm_products', JSON.stringify(db.products));
+                      localStorage.setItem('kdm_transactions', JSON.stringify(db.transactions));
+                      localStorage.setItem('kdm_pending', JSON.stringify(db.pendingList));
+                  }
+                  document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Active';
+                  renderAll();
+              })
+              .catch(err => {
+                  console.error("Fetch error:", err);
+                  document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Offline';
+              });
+      } else {
+          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
+      }
   }
 
-  // 2. KIRIM DATA KE GOOGLE SHEETS
+  // 2. KIRIM DATA KE GOOGLE SHEETS + LOCAL STORAGE
   function sendDataToSheet() {
+      // Simpan langsung ke LocalStorage browser
+      localStorage.setItem('kdm_products', JSON.stringify(db.products));
+      localStorage.setItem('kdm_transactions', JSON.stringify(db.transactions));
+      localStorage.setItem('kdm_pending', JSON.stringify(db.pendingList));
+
+      if (!SCRIPT_URL || SCRIPT_URL === "ISI_DENGAN_URL_WEB_APP_ANDA") return;
+
       document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Saving...';
+
       fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -442,12 +472,10 @@
       }).then(() => {
           document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Saved';
       }).catch(err => {
-          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error Save';
+          console.error("Save error:", err);
+          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Save Error';
       });
   }
-
-  // Auto Refresh Setiap 10 Detik Agar Perangkat Lain Mengikuti Perubahan secara Real-Time
-  setInterval(fetchDataFromSheet, 10000);
 
   function initDates() {
       const today = new Date().toISOString().split('T')[0];
@@ -932,7 +960,7 @@
 
   window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
 
-  // Ambil Data Pertama Kali Saat Halaman Di-load
+  // Ambil Data Pertama Kali Saat Halaman Dimuat
   fetchDataFromSheet();
 </script>
 </body>
