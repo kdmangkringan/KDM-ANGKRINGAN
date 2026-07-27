@@ -254,7 +254,7 @@
         <button type="button" class="nav-item" onclick="switchTab('rekapan', this)"><i class="fa-solid fa-chart-pie"></i> Rekapan</button>
     </nav>
 
-    <!-- Modal Keranjang / Bayar / Pending -->
+    <!-- Modal Keranjang / Bayar -->
     <div class="modal-overlay" id="cartModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -319,30 +319,30 @@
                 <input type="hidden" id="prodId">
                 <div class="form-group">
                     <label class="form-label">Nama Menu</label>
-                    <input type="text" id="prodName" class="form-control" required>
+                    <input type="text" id="prodName" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Kategori</label>
-                    <select id="prodCategory" class="form-control" required>
+                    <select id="prodCategory" class="form-control">
                         <option value="makanan">Makanan</option>
                         <option value="minuman">Minuman</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Kepemilikan Produk</label>
-                    <input type="text" id="prodOwner" class="form-control" placeholder="Cth: Milik Sendiri / Titipan Bu Ani" required>
+                    <input type="text" id="prodOwner" class="form-control" placeholder="Cth: Milik Sendiri / Titipan Bu Ani">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Potongan Bagi Hasil (%)</label>
-                    <input type="number" step="0.1" id="prodCut" class="form-control" placeholder="Cth: 10 (artinya 10%)" required>
+                    <input type="number" step="0.1" id="prodCut" class="form-control" placeholder="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Harga Jual (Rp)</label>
-                    <input type="number" id="prodPrice" class="form-control" required>
+                    <input type="number" id="prodPrice" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Keterangan / Deskripsi</label>
-                    <textarea id="prodDesc" class="form-control" rows="2" placeholder="Detail rasa, porsi, atau catatan..."></textarea>
+                    <textarea id="prodDesc" class="form-control" rows="2" placeholder="Catatan..."></textarea>
                 </div>
                 <button type="button" onclick="saveProduct(event)" class="btn btn-primary" style="width:100%;">Simpan Menu</button>
             </div>
@@ -360,15 +360,15 @@
                 <input type="hidden" id="editTransId">
                 <div class="form-group">
                     <label class="form-label">Keterangan / Judul Transaksi</label>
-                    <input type="text" id="editTransTitle" class="form-control" required>
+                    <input type="text" id="editTransTitle" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Amount (Rp)</label>
-                    <input type="number" id="editTransAmount" class="form-control" required>
+                    <input type="number" id="editTransAmount" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tanggal</label>
-                    <input type="date" id="editTransDate" class="form-control" required>
+                    <input type="date" id="editTransDate" class="form-control">
                 </div>
                 <button type="button" onclick="saveEditTransaction(event)" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
             </div>
@@ -385,15 +385,15 @@
             <div>
                 <div class="form-group">
                     <label class="form-label">Keterangan Pembelian</label>
-                    <input type="text" id="buyTitle" class="form-control" placeholder="Cth: Arang, Sate-satean, Es Batu" required>
+                    <input type="text" id="buyTitle" class="form-control" placeholder="Cth: Arang, Es Batu">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Biaya (Rp)</label>
-                    <input type="number" id="buyAmount" class="form-control" required>
+                    <input type="number" id="buyAmount" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tanggal</label>
-                    <input type="date" id="buyDate" class="form-control" required>
+                    <input type="date" id="buyDate" class="form-control">
                 </div>
                 <button type="button" onclick="savePurchase(event)" class="btn btn-primary" style="width:100%;">Catat Pengeluaran</button>
             </div>
@@ -402,8 +402,8 @@
 </div>
 
 <script>
-  // PASTE URL SCRIPT GOOGLE SCRIPT ANDA DI SINI (JIKA ADA)
-  const SCRIPT_URL = "ISI_DENGAN_URL_WEB_APP_ANDA";
+  // PASTE URL SCRIPT GOOGLE APPS SCRIPT ANDA DI SINI
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5PeScNo_JW-T1hK-C5bpeXtzR3_3nVUw3Yr4JKuN1QIcPSjbF1fyTP2dFuagPvkB2Qw/exec";
 
   let db = { products: [], transactions: [], pendingList: [] };
   let cart = [];
@@ -412,11 +412,11 @@
 
   window.formatRp = function(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
-  // 1. AMBIL DATA SAAT HALAMAN DIMUAT
+  // 1. AMBIL DATA DARI SHEET (SEL A1)
   function fetchDataFromSheet() {
       document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Loading...';
       
-      // Ambil data lokal secara aman
+      // Ambil data lokal terlebih dahulu
       try {
           const localProducts = localStorage.getItem('kdm_products');
           const localTransactions = localStorage.getItem('kdm_transactions');
@@ -431,24 +431,29 @@
       
       renderAll();
 
-      // Jika URL Google Sheets terisi, tarik data dari Sheet
       if (SCRIPT_URL && SCRIPT_URL !== "ISI_DENGAN_URL_WEB_APP_ANDA") {
           fetch(SCRIPT_URL)
-              .then(res => res.json())
-              .then(data => {
-                  if (data) {
-                      if (data.products && Array.isArray(data.products) && data.products.length > 0) db.products = data.products;
-                      if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) db.transactions = data.transactions;
-                      if (data.pendingList && Array.isArray(data.pendingList)) db.pendingList = data.pendingList;
-
-                      saveLocal();
+              .then(res => res.text())
+              .then(textData => {
+                  try {
+                      // Sel A1 berisi stringified JSON dari object {products, transactions, pendingList}
+                      const parsed = JSON.parse(textData);
+                      if (parsed && typeof parsed === 'object') {
+                          db.products = parsed.products || db.products || [];
+                          db.transactions = parsed.transactions || db.transactions || [];
+                          db.pendingList = parsed.pendingList || db.pendingList || [];
+                          saveLocal();
+                      }
+                      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Active';
+                  } catch(e) {
+                      console.log("Sheet A1 is empty or non-JSON yet");
+                      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
                   }
-                  document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Active';
                   renderAll();
               })
               .catch(err => {
                   console.error("Fetch error:", err);
-                  document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Only';
+                  document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
               });
       } else {
           document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
@@ -465,7 +470,7 @@
       }
   }
 
-  // 2. SIMPAN DATA KE SPREADSHEET & LOCAL STORAGE
+  // 2. KIRIM SELURUH DATA JSON KE SHEET (SEL A1)
   function sendDataToSheet() {
       saveLocal();
 
@@ -473,11 +478,13 @@
 
       document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Saving...';
 
+      const payload = JSON.stringify(db);
+
       fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(db)
+          body: payload
       }).then(() => {
           document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Saved';
       }).catch(err => {
@@ -991,7 +998,7 @@
 
   window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
 
-  // Ambil Data Pertama Kali Saat Halaman Dimuat
+  // Load awal
   fetchDataFromSheet();
 </script>
 </body>
