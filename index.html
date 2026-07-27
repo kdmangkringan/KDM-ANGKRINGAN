@@ -3,97 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KDM ANGKRINGAN - POS System</title>
+    <title>KDM ANGKRINGAN - Smart POS</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #d97706;
-            --primary-dark: #b45309;
-            --bg-dark: #1e110a;
-            --bg-body: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #271e18;
-            --text-muted: #786c64;
-            --border-color: #e5e1dd;
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --primary-glow: rgba(245, 158, 11, 0.25);
+            --bg-dark: #120a06;
+            --bg-body: #0d0704;
+            --card-bg: #1c1009;
+            --card-border: rgba(217, 119, 6, 0.15);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #2e1a10;
             --success: #10b981;
             --danger: #ef4444;
+            --radius-lg: 20px;
             --radius-md: 14px;
             --radius-sm: 8px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: #0d0704; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); }
         
-        .mobile-container { width: 100%; max-width: 480px; height: 100vh; background-color: var(--bg-body); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .mobile-container { width: 100%; max-width: 480px; height: 100vh; background: linear-gradient(180deg, #180d07 0%, #0d0704 100%); display: flex; flex-direction: column; position: relative; overflow: hidden; }
         
         @media (min-height: 700px) and (min-width: 500px) {
-            .mobile-container { height: 92vh; border-radius: 28px; border: 4px solid #3d2b1f; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+            .mobile-container { height: 94vh; border-radius: 32px; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 0 50px rgba(0,0,0,0.8), 0 0 20px rgba(217, 119, 6, 0.2); }
         }
 
-        .app-header { background: linear-gradient(135deg, #2b180d 0%, #1e110a 100%); color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--primary); }
-        .brand-info { display: flex; align-items: center; gap: 10px; }
-        .brand-logo { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); background: #fff; }
-        .brand-info h1 { font-size: 15px; font-weight: 700; color: #fff; }
-        .brand-info span { font-size: 11px; color: #d7ccc8; }
+        /* Header UI */
+        .app-header { background: rgba(28, 16, 9, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #ffffff; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; }
+        .brand-info { display: flex; align-items: center; gap: 12px; }
+        .brand-logo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+        .brand-info h1 { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+        .brand-info span { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         
-        .autosave-badge { background: rgba(217, 119, 6, 0.2); color: #fbbf24; font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(217, 119, 6, 0.4); cursor: pointer; }
+        /* Auto Save Status Badge */
+        .autosave-badge { background: rgba(245, 158, 11, 0.1); color: var(--primary); font-size: 10px; padding: 6px 12px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.3); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; }
+        .autosave-badge:active { transform: scale(0.95); }
+        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary); box-shadow: 0 0 8px var(--primary); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.4; transform: scale(0.8); } }
 
-        .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
-        .tab-view { display: none; }
-        .tab-view.active { display: block; }
+        /* Content Area */
+        .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; scroll-behavior: smooth; }
+        .tab-view { display: none; opacity: 0; transform: translateY(10px); transition: all 0.3s ease-in-out; }
+        .tab-view.active { display: block; opacity: 1; transform: translateY(0); }
 
-        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 6px 2px 10px 2px; z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--text-muted); font-size: 8.5px; font-weight: 600; cursor: pointer; padding: 4px 2px; flex: 1; }
-        .nav-item i { font-size: 15px; }
-        .nav-item.active { color: var(--primary); background-color: #fff7ed; border-radius: 8px; }
+        /* Navigation Bar */
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(20, 11, 6, 0.95); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 8px 4px 12px 4px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--text-muted); font-size: 10px; font-weight: 700; cursor: pointer; padding: 6px; flex: 1; border-radius: 12px; transition: all 0.3s ease; }
+        .nav-item i { font-size: 16px; transition: transform 0.2s ease; }
+        .nav-item.active { color: var(--primary); background: rgba(245, 158, 11, 0.12); }
+        .nav-item.active i { transform: translateY(-2px); }
 
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-size: 15px; font-weight: 700; color: var(--bg-dark); }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .section-title { font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; }
 
-        .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--border-color); margin-bottom: 12px; }
-        .btn { padding: 8px 12px; border-radius: var(--radius-sm); border: none; font-weight: 600; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-primary { background-color: var(--primary); color: #ffffff; }
-        .btn-secondary { background-color: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); }
-        .btn-danger { background-color: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
-        .btn-sm { padding: 4px 8px; font-size: 11px; }
+        /* Cards & Components */
+        .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--card-border); margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .btn { padding: 10px 16px; border-radius: var(--radius-sm); border: none; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; box-shadow: 0 4px 12px var(--primary-glow); }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-sm { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
 
-        .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border-color); background: #fff; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
-        .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .filter-chip { padding: 8px 14px; border-radius: 30px; font-size: 11px; font-weight: 700; border: 1px solid var(--card-border); background: var(--card-bg); cursor: pointer; color: var(--text-muted); flex-shrink: 0; transition: all 0.2s ease; }
+        .filter-chip.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
 
-        .form-group { margin-bottom: 10px; }
-        .form-label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
-        .form-control { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 12px; outline: none; background: #ffffff; }
+        .form-group { margin-bottom: 12px; }
+        .form-label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12px; outline: none; background: rgba(0, 0, 0, 0.4); color: #fff; transition: border 0.2s; }
+        .form-control:focus { border-color: var(--primary); }
 
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .product-card { background: var(--card-bg); border-radius: var(--radius-md); padding: 10px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; position: relative; }
-        .product-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-        .product-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-price { font-size: 12px; font-weight: 800; color: var(--primary); }
+        /* Grid Produk Kasir */
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .product-card { background: var(--card-bg); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; position: relative; transition: all 0.2s ease; }
+        .product-card:active { transform: scale(0.97); border-color: var(--primary); }
+        .product-name { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 4px; line-height: 1.3; }
+        .product-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-price { font-size: 13px; font-weight: 800; color: var(--primary); }
         
-        .badge-populer { position: absolute; top: 6px; right: 6px; background: #fef3c7; color: #b45309; font-size: 8px; font-weight: 800; padding: 2px 5px; border-radius: 4px; border: 1px solid #fde68a; }
-        .badge-owner { display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; }
-        .badge-cut { display: inline-block; background: #fef3c7; color: #92400e; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; }
+        .badge-populer { position: absolute; top: 8px; right: 8px; background: rgba(245, 158, 11, 0.2); color: var(--primary); font-size: 8px; font-weight: 800; padding: 3px 6px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-owner { display: inline-block; background: rgba(59, 130, 246, 0.15); color: #60a5fa; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-cut { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--primary); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-        .cart-bar { position: absolute; bottom: 65px; left: 12px; right: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 10px 14px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; cursor: pointer; z-index: 90; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4); }
+        .cart-bar { position: absolute; bottom: 72px; left: 16px; right: 16px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; padding: 12px 18px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; cursor: pointer; z-index: 90; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); display: none; justify-content: flex-end; flex-direction: column; z-index: 200; }
+        .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px); display: none; justify-content: flex-end; flex-direction: column; z-index: 200; }
         .modal-overlay.active { display: flex; }
-        .modal-card { background: #ffffff; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 16px; max-height: 85vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .modal-card { background: #180d07; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; max-height: 85vh; overflow-y: auto; border-top: 1px solid var(--primary); box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
-        .stat-card { background: #fff8f0; border: 1px solid #fed7aa; padding: 8px 10px; border-radius: var(--radius-sm); }
-        .stat-label { font-size: 10px; color: var(--text-muted); font-weight: 600; }
-        .stat-value { font-size: 13px; font-weight: 800; color: var(--bg-dark); margin-top: 2px; }
+        /* Stats Grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
+        .stat-card { background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); padding: 10px 12px; border-radius: var(--radius-sm); }
+        .stat-label { font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 14px; font-weight: 800; color: #fff; margin-top: 4px; }
         
-        .type-badge { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
-        .badge-sale { background: #dcfce7; color: #15803d; }
-        .badge-buy { background: #fee2e2; color: #b91c1c; }
-        .badge-pending { background: #fef3c7; color: #b45309; }
+        .type-badge { padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-sale { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-buy { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-pending { background: rgba(245, 158, 11, 0.2); color: var(--primary); border: 1px solid rgba(245, 158, 11, 0.3); }
         
-        .cart-item-row { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 8px; }
+        .cart-item-row { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 8px; }
+
+        /* Custom Dynamic Rekapan Colors */
+        .text-green { color: var(--success) !important; }
+        .text-red { color: var(--danger) !important; }
+        .text-neutral { color: var(--text-muted) !important; }
+        .bg-recap-box { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; border: 1px solid var(--card-border); margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -104,11 +128,11 @@
             <img src="https://lh3.googleusercontent.com/d/18OkEwhN9AMLrGvfdetN3Bk3ztBIG72bs" class="brand-logo" alt="Logo">
             <div>
                 <h1>KDM ANGKRINGAN</h1>
-                <span>Spreadsheet Sync POS</span>
+                <span>Smart POS System</span>
             </div>
         </div>
         <div class="autosave-badge" id="syncStatus" onclick="fetchDataFromSheet()">
-            <i class="fa-solid fa-sync fa-spin"></i> Ready
+            <div class="pulse-dot"></div> Ready
         </div>
     </header>
 
@@ -116,14 +140,14 @@
         <!-- 1. KASIR -->
         <section id="tab-kasir" class="tab-view active">
             <div class="section-header">
-                <span class="section-title">Menu Kasir</span>
+                <span class="section-title"><i class="fa-solid fa-store" style="color:var(--primary); margin-right:6px;"></i> Menu Kasir</span>
             </div>
             
-            <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
                 <button type="button" class="filter-chip active" onclick="setCategoryFilter('all', this)">Semua</button>
                 <button type="button" class="filter-chip" onclick="setCategoryFilter('makanan', this)">Makanan</button>
                 <button type="button" class="filter-chip" onclick="setCategoryFilter('minuman', this)">Minuman</button>
-                <button type="button" class="filter-chip" onclick="setCategoryFilter('populer', this)"><i class="fa-solid fa-fire"></i> Sering Laku</button>
+                <button type="button" class="filter-chip" onclick="setCategoryFilter('populer', this)"><i class="fa-solid fa-fire"></i> Terlaris</button>
             </div>
 
             <div class="product-grid" id="kasirMenuGrid"></div>
@@ -132,7 +156,7 @@
         <!-- 2. PENDING -->
         <section id="tab-pending" class="tab-view">
             <div class="section-header">
-                <span class="section-title">Daftar Pending</span>
+                <span class="section-title"><i class="fa-solid fa-clock" style="color:var(--primary); margin-right:6px;"></i> Daftar Pending</span>
             </div>
             <div id="pendingList"></div>
         </section>
@@ -140,12 +164,12 @@
         <!-- 3. DAFTAR MENU -->
         <section id="tab-produk" class="tab-view">
             <div class="section-header">
-                <span class="section-title">Daftar Menu</span>
-                <button type="button" class="btn btn-primary btn-sm" onclick="openAddProductModal()"><i class="fa-solid fa-plus"></i> Tambah Menu</button>
+                <span class="section-title"><i class="fa-solid fa-utensils" style="color:var(--primary); margin-right:6px;"></i> Kelola Menu</span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAddProductModal()"><i class="fa-solid fa-plus"></i> Tambah</button>
             </div>
 
-            <div class="card" style="padding: 10px; margin-bottom: 10px;">
-                <label class="form-label" style="margin-bottom: 4px;"><i class="fa-solid fa-filter"></i> Filter Kepemilikan:</label>
+            <div class="card" style="padding: 10px; margin-bottom: 12px;">
+                <label class="form-label" style="margin-bottom: 4px;"><i class="fa-solid fa-filter"></i> Filter Kepemilikan</label>
                 <select id="ownerFilterSelect" class="form-control" onchange="renderProducts()">
                     <option value="all">Semua Pemilik</option>
                 </select>
@@ -157,15 +181,15 @@
         <!-- 4. RIWAYAT TRANSAKSI -->
         <section id="tab-riwayat" class="tab-view">
             <div class="section-header">
-                <span class="section-title">Riwayat Transaksi</span>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="openAddBuyModal()"><i class="fa-solid fa-cart-plus"></i> Pembelian</button>
+                <span class="section-title"><i class="fa-solid fa-list-check" style="color:var(--primary); margin-right:6px;"></i> Transaksi</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openAddBuyModal()"><i class="fa-solid fa-cart-plus"></i> Pengeluaran</button>
             </div>
             
             <div class="card" style="padding: 10px;">
-                <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px;"><i class="fa-solid fa-filter"></i> Filter Range Tanggal</div>
-                <div style="display: flex; gap: 6px; align-items: center;">
+                <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; color:var(--text-muted);"><i class="fa-solid fa-calendar-days"></i> FILTER TANGGAL</div>
+                <div style="display: flex; gap: 8px; align-items: center;">
                     <input type="date" id="filterStartDate" class="form-control" onchange="renderRiwayat()">
-                    <span style="font-size: 10px;">s/d</span>
+                    <span style="font-size: 10px; color:var(--text-muted);">s/d</span>
                     <input type="date" id="filterEndDate" class="form-control" onchange="renderRiwayat()">
                 </div>
             </div>
@@ -176,17 +200,17 @@
         <!-- 5. REKAPAN -->
         <section id="tab-rekapan" class="tab-view">
             <div class="section-header">
-                <span class="section-title">Rekapan Penjualan</span>
+                <span class="section-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary); margin-right:6px;"></i> Rekapan Penjualan</span>
             </div>
 
-            <div class="card" style="padding: 10px;">
-                <label class="form-label" style="margin-bottom: 4px;"><i class="fa-solid fa-calendar-day"></i> Pilih Tanggal Rekapan:</label>
+            <div class="card" style="padding: 12px;">
+                <label class="form-label" style="margin-bottom: 6px;"><i class="fa-solid fa-calendar-day"></i> Pilih Tanggal Rekapan</label>
                 <input type="date" id="recapDateFilter" class="form-control" onchange="renderRekapan()">
             </div>
 
             <div class="card">
-                <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--primary-dark);">
-                    <i class="fa-solid fa-chart-pie"></i> Ringkasan Tanggal <span id="recapDateLabel"></span>
+                <div style="font-size: 13px; font-weight: 800; margin-bottom: 12px; color: var(--primary);">
+                    <i class="fa-solid fa-calculator"></i> Ringkasan Tanggal: <span id="recapDateLabel" style="color:#fff;"></span>
                 </div>
                 <div class="stat-grid">
                     <div class="stat-card">
@@ -199,37 +223,38 @@
                     </div>
                 </div>
 
-                <div style="margin-top:10px; background:#fff; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
-                    <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:4px;">
-                        Rekapan Pemilik Produk:
+                <div style="margin-top:12px; background:rgba(0,0,0,0.25); padding:12px; border-radius:10px; border:1px solid var(--card-border);">
+                    <div style="font-size:11px; font-weight:800; margin-bottom:8px; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
+                        Rekapan Pemilik Produk
                     </div>
                     <div id="ownerCutsList" style="font-size:11px; color:var(--text-muted);">
                         -
                     </div>
                 </div>
 
-                <div style="margin-top:10px; padding:8px; background:#fef3c7; border-radius:8px; border:1px solid #fde68a;">
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
-                        <span>Total Potongan Tanggal Ini:</span>
-                        <b id="dailyTotalCut" style="color:#b45309;">Rp 0</b>
+                <!-- Bagian Uang Lebih / Kurang Bayar Dinamis -->
+                <div class="bg-recap-box">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; color:var(--text-muted);">
+                        <span>Total Potongan Hari Ini:</span>
+                        <b id="dailyTotalCut" style="color:var(--primary);">Rp 0</b>
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:800; border-top:1px solid #fde68a; padding-top:4px;">
-                        <span>Kurang Bayar (QRIS - Total Potongan):</span>
-                        <b id="dailyKurangBayar" style="color:var(--danger);">Rp 0</b>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:800; border-top:1px solid var(--border-color); padding-top:8px; align-items:center;">
+                        <span id="labelSelisih">Uang Lebih / Kurang Bayar:</span>
+                        <b id="dailyValueSelisih" style="font-size:14px;">Rp 0</b>
                     </div>
                 </div>
             </div>
 
             <div class="card">
-                <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;"><i class="fa-solid fa-chart-line"></i> Ringkasan Bulan Ini</div>
+                <div style="font-size: 13px; font-weight: 800; margin-bottom: 10px; color:#fff;"><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Performa Bulan Ini</div>
                 <div class="stat-grid">
                     <div class="stat-card">
                         <div class="stat-label">Total Omset</div>
                         <div class="stat-value" id="monthlySale">Rp 0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Pengeluaran/Beli</div>
-                        <div class="stat-value" id="monthlyBuy" style="color:var(--danger)">Rp 0</div>
+                        <div class="stat-label">Total Pengeluaran</div>
+                        <div class="stat-value" id="monthlyBuy" style="color:var(--danger);">Rp 0</div>
                     </div>
                 </div>
             </div>
@@ -239,10 +264,10 @@
     <!-- Cart Bar -->
     <div class="cart-bar" id="cartBar" onclick="openCartModal()" style="display:none;">
         <div>
-            <div style="font-size:10px;">Total Keranjang</div>
-            <div style="font-weight:800; font-size:13px;" id="cartTotalPreview">Rp 0</div>
+            <div style="font-size:10px; font-weight:700; text-transform:uppercase; opacity:0.8;">Total Dalam Keranjang</div>
+            <div style="font-weight:800; font-size:15px;" id="cartTotalPreview">Rp 0</div>
         </div>
-        <div style="font-size:12px; font-weight:700;">Proses <i class="fa-solid fa-chevron-right"></i></div>
+        <div style="font-size:12px; font-weight:800; display:flex; align-items:center; gap:6px;">Lihat Pesanan <i class="fa-solid fa-arrow-right"></i></div>
     </div>
 
     <!-- Navigation Bar -->
@@ -250,7 +275,7 @@
         <button type="button" class="nav-item active" onclick="switchTab('kasir', this)"><i class="fa-solid fa-cash-register"></i> Kasir</button>
         <button type="button" class="nav-item" onclick="switchTab('pending', this)"><i class="fa-solid fa-clock"></i> Pending</button>
         <button type="button" class="nav-item" onclick="switchTab('produk', this)"><i class="fa-solid fa-utensils"></i> Menu</button>
-        <button type="button" class="nav-item" onclick="switchTab('riwayat', this)"><i class="fa-solid fa-clock-rotate-left"></i> Transaksi</button>
+        <button type="button" class="nav-item" onclick="switchTab('riwayat', this)"><i class="fa-solid fa-list-check"></i> Transaksi</button>
         <button type="button" class="nav-item" onclick="switchTab('rekapan', this)"><i class="fa-solid fa-chart-pie"></i> Rekapan</button>
     </nav>
 
@@ -258,8 +283,8 @@
     <div class="modal-overlay" id="cartModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px;">Detail Transaksi</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('cartModal')">X</button>
+                <h3 style="font-size: 14px; font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> Detail Transaksi</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('cartModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
             <div id="cartItemsList" style="margin-bottom:12px;"></div>
@@ -273,7 +298,7 @@
             </div>
 
             <div id="customerNameGroup" class="form-group" style="display:none;">
-                <label class="form-label" style="color:var(--primary); font-weight:700;">Nama Pelanggan / Catatan Meja</label>
+                <label class="form-label" style="color:var(--primary);">Nama Pelanggan / Catatan Meja</label>
                 <input type="text" id="customerName" class="form-control" placeholder="Cth: Mas Budi / Meja 3">
             </div>
 
@@ -298,10 +323,10 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 12px; font-size: 12px; background: #fff8f0; padding: 8px; border-radius: 6px; border: 1px solid #fed7aa;">
-                <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span><b id="summarySubtotal">Rp 0</b></div>
-                <div style="display:flex; justify-content:space-between; color:var(--danger);"><span>Total Diskon:</span><b id="summaryDiscount">-Rp 0</b></div>
-                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; margin-top:4px; border-top:1px solid #e5e1dd; padding-top:4px;"><span>Total Akhir:</span><b id="summaryTotal">Rp 0</b></div>
+            <div style="margin-bottom: 14px; font-size: 12px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--text-muted);"><span>Subtotal:</span><b id="summarySubtotal" style="color:#fff;">Rp 0</b></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--danger);"><span>Total Diskon:</span><b id="summaryDiscount">-Rp 0</b></div>
+                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px; margin-top:6px; border-top:1px solid var(--border-color); padding-top:6px;"><span>Total Akhir:</span><b id="summaryTotal" style="color:var(--primary);">Rp 0</b></div>
             </div>
 
             <button type="button" class="btn btn-primary" style="width:100%;" id="checkoutBtn" onclick="processCheckout()">Proses Transaksi</button>
@@ -312,8 +337,8 @@
     <div class="modal-overlay" id="productModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px;" id="productModalTitle">Tambah Menu</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('productModal')">X</button>
+                <h3 style="font-size: 14px; font-weight:800;" id="productModalTitle">Tambah Menu</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('productModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div>
                 <input type="hidden" id="prodId">
@@ -353,17 +378,17 @@
     <div class="modal-overlay" id="editTransModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px;">Edit Transaksi</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('editTransModal')">X</button>
+                <h3 style="font-size: 14px; font-weight:800;">Edit Transaksi</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('editTransModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div>
                 <input type="hidden" id="editTransId">
                 <div class="form-group">
-                    <label class="form-label">Keterangan / Judul Transaksi</label>
+                    <label class="form-label">Keterangan Transaksi</label>
                     <input type="text" id="editTransTitle" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Total Amount (Rp)</label>
+                    <label class="form-label">Total Nominal (Rp)</label>
                     <input type="number" id="editTransAmount" class="form-control">
                 </div>
                 <div class="form-group">
@@ -379,13 +404,13 @@
     <div class="modal-overlay" id="buyModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px;">Catat Pembelian / Pengeluaran</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('buyModal')">X</button>
+                <h3 style="font-size: 14px; font-weight:800;">Catat Pengeluaran</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('buyModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div>
                 <div class="form-group">
-                    <label class="form-label">Keterangan Pembelian</label>
-                    <input type="text" id="buyTitle" class="form-control" placeholder="Cth: Arang, Es Batu">
+                    <label class="form-label">Keterangan Pengeluaran</label>
+                    <input type="text" id="buyTitle" class="form-control" placeholder="Cth: Arang, Es Batu, Sedotan">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Biaya (Rp)</label>
@@ -395,15 +420,15 @@
                     <label class="form-label">Tanggal</label>
                     <input type="date" id="buyDate" class="form-control">
                 </div>
-                <button type="button" onclick="savePurchase(event)" class="btn btn-primary" style="width:100%;">Catat Pengeluaran</button>
+                <button type="button" onclick="savePurchase(event)" class="btn btn-primary" style="width:100%;">Simpan Pengeluaran</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-  // PASTE URL SCRIPT GOOGLE APPS SCRIPT ANDA DI SINI
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5PeScNo_JW-T1hK-C5bpeXtzR3_3nVUw3Yr4JKuN1QIcPSjbF1fyTP2dFuagPvkB2Qw/exec";
+  // PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
+  const SCRIPT_URL = "ISI_DENGAN_URL_WEB_APP_ANDA";
 
   let db = { products: [], transactions: [], pendingList: [] };
   let cart = [];
@@ -412,11 +437,9 @@
 
   window.formatRp = function(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
-  // 1. AMBIL DATA DARI SHEET (SEL A1)
   function fetchDataFromSheet() {
-      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Loading...';
+      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Loading...';
       
-      // Ambil data lokal terlebih dahulu
       try {
           const localProducts = localStorage.getItem('kdm_products');
           const localTransactions = localStorage.getItem('kdm_transactions');
@@ -426,7 +449,7 @@
           if (localTransactions) db.transactions = JSON.parse(localTransactions);
           if (localPending) db.pendingList = JSON.parse(localPending);
       } catch (e) {
-          console.error("Error reading localStorage", e);
+          console.error("Error membaca localStorage", e);
       }
       
       renderAll();
@@ -436,7 +459,6 @@
               .then(res => res.text())
               .then(textData => {
                   try {
-                      // Sel A1 berisi stringified JSON dari object {products, transactions, pendingList}
                       const parsed = JSON.parse(textData);
                       if (parsed && typeof parsed === 'object') {
                           db.products = parsed.products || db.products || [];
@@ -444,19 +466,18 @@
                           db.pendingList = parsed.pendingList || db.pendingList || [];
                           saveLocal();
                       }
-                      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Active';
+                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#10b981; box-shadow:0 0 8px #10b981;"></div> Connected';
                   } catch(e) {
-                      console.log("Sheet A1 is empty or non-JSON yet");
-                      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
+                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Local Active';
                   }
                   renderAll();
               })
               .catch(err => {
                   console.error("Fetch error:", err);
-                  document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
+                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Local Active';
               });
       } else {
-          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-database"></i> Local Active';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Local Active';
       }
   }
 
@@ -466,17 +487,16 @@
           localStorage.setItem('kdm_transactions', JSON.stringify(db.transactions || []));
           localStorage.setItem('kdm_pending', JSON.stringify(db.pendingList || []));
       } catch(e) {
-          console.error("Local save fail", e);
+          console.error("Gagal simpan lokal", e);
       }
   }
 
-  // 2. KIRIM SELURUH DATA JSON KE SHEET (SEL A1)
   function sendDataToSheet() {
       saveLocal();
 
       if (!SCRIPT_URL || SCRIPT_URL === "ISI_DENGAN_URL_WEB_APP_ANDA") return;
 
-      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Saving...';
+      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Saving...';
 
       const payload = JSON.stringify(db);
 
@@ -486,10 +506,10 @@
           headers: { 'Content-Type': 'application/json' },
           body: payload
       }).then(() => {
-          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Saved';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#10b981; box-shadow:0 0 8px #10b981;"></div> Saved';
       }).catch(err => {
           console.error("Save error:", err);
-          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Save Error';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#ef4444; box-shadow:0 0 8px #ef4444;"></div> Error';
       });
   }
 
@@ -526,7 +546,7 @@
       else if (activeFilter === 'populer') items.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
 
       if (items.length === 0) {
-          grid.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--text-muted); font-size:12px; padding:20px;">Belum ada menu. Silakan tambah menu di tab 'Menu'.</div>`;
+          grid.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--text-muted); font-size:12px; padding:30px;">Belum ada menu tersedia. Tambahkan menu di tab 'Menu'.</div>`;
           return;
       }
 
@@ -591,20 +611,20 @@
       list.innerHTML = cart.map(c => `
           <div class="cart-item-row">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                  <span style="font-weight:700; font-size:12px;">${c.name}</span>
+                  <span style="font-weight:700; font-size:12px; color:#fff;">${c.name}</span>
                   <div style="display:flex; align-items:center; gap:6px;">
-                      <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 6px;" onclick="updateItemQty('${c.id}', -1)">-</button>
-                      <span style="font-size:12px; font-weight:700;">${c.qty}</span>
-                      <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 6px;" onclick="updateItemQty('${c.id}', 1)">+</button>
+                      <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px;" onclick="updateItemQty('${c.id}', -1)">-</button>
+                      <span style="font-size:12px; font-weight:800; color:#fff;">${c.qty}</span>
+                      <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px;" onclick="updateItemQty('${c.id}', 1)">+</button>
                   </div>
               </div>
               <div style="display:flex; gap:6px; align-items:center;">
                   <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                      <span style="font-size:10px; color:var(--text-muted); font-weight:600;">Harga/pc:</span>
+                      <span style="font-size:10px; color:var(--text-muted); font-weight:600;">Harga:</span>
                       <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.price}" oninput="updateItemPrice('${c.id}', this.value)">
                   </div>
                   <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                      <span style="font-size:10px; color:var(--danger); font-weight:600;">Disc/prod:</span>
+                      <span style="font-size:10px; color:var(--danger); font-weight:600;">Diskon:</span>
                       <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.discount || ''}" placeholder="0" oninput="updateItemDiscount('${c.id}', this.value)">
                   </div>
               </div>
@@ -620,7 +640,7 @@
       const type = document.getElementById('transactionType').value;
       document.getElementById('customerNameGroup').style.display = type === 'pending' ? 'block' : 'none';
       document.getElementById('paymentSection').style.display = type === 'pending' ? 'none' : 'block';
-      document.getElementById('checkoutBtn').innerText = type === 'pending' ? 'Simpan ke Pending' : 'Proses & Simpan Transaksi';
+      document.getElementById('checkoutBtn').innerText = type === 'pending' ? 'Simpan Ke Pending' : 'Proses & Simpan Transaksi';
   }
 
   window.togglePaymentInputs = function() {
@@ -660,7 +680,7 @@
               if (idx !== -1) db.pendingList[idx] = pendingObj;
           } else { db.pendingList.unshift(pendingObj); }
 
-          alert('Transaksi masuk ke Pending!');
+          alert('Berhasil disimpan ke Pending!');
       } else {
           const method = document.getElementById('paymentMethod').value;
           const cashVal = parseFloat(document.getElementById('cashInput').value) || 0;
@@ -677,7 +697,7 @@
           db.transactions.unshift(trans);
 
           if (activePendingId) db.pendingList = db.pendingList.filter(p => p.id !== activePendingId);
-          alert('Transaksi Penjualan Berhasil!');
+          alert('Transaksi Berhasil Disimpan!');
       }
 
       cart = []; activePendingId = null;
@@ -694,21 +714,21 @@
       const items = db.pendingList || [];
 
       if (items.length === 0) {
-          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Tidak ada transaksi pending.</div>`;
+          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:30px;">Tidak ada pesanan pending.</div>`;
           return;
       }
 
       list.innerHTML = items.map(p => `
           <div class="card" style="margin-bottom:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <span class="type-badge badge-pending"><i class="fa-solid fa-user"></i> ${p.customerName}</span>
                   <span style="font-size:10px; color:var(--text-muted);">${p.date}</span>
               </div>
-              <div style="font-size:11px; color:var(--text-main); margin-bottom:6px;">
-                  ${p.items.map(i => `<div>- ${i.name} x${i.qty} (${formatRp((i.price * i.qty) - (i.discount || 0))})</div>`).join('')}
+              <div style="font-size:11px; color:var(--text-main); margin-bottom:8px;">
+                  ${p.items.map(i => `<div>• ${i.name} x${i.qty} (${formatRp((i.price * i.qty) - (i.discount || 0))})</div>`).join('')}
               </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:6px;">
-                  <div style="font-weight:800; font-size:13px; color:var(--primary);">${formatRp(p.amount)}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:8px;">
+                  <div style="font-weight:800; font-size:14px; color:var(--primary);">${formatRp(p.amount)}</div>
                   <div style="display:flex; gap:6px;">
                       <button type="button" class="btn btn-danger btn-sm" onclick="deletePending('${p.id}')"><i class="fa-solid fa-trash"></i></button>
                       <button type="button" class="btn btn-primary btn-sm" onclick="payPending('${p.id}')"><i class="fa-solid fa-cash-register"></i> Bayar</button>
@@ -748,7 +768,7 @@
       if (selectedOwner !== 'all') filteredProducts = filteredProducts.filter(p => (p.owner || 'Milik Sendiri') === selectedOwner);
 
       if(filteredProducts.length === 0) {
-          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Menu tidak ditemukan. Silakan tambah menu baru.</div>`;
+          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:30px;">Tidak ada menu yang sesuai.</div>`;
           return;
       }
 
@@ -756,16 +776,16 @@
           <div class="card" style="margin-bottom:8px;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                   <div>
-                      <div style="font-size:13px; font-weight:700;">${p.name} <span style="font-size:10px; color:var(--primary); font-weight:600;">(${p.category || 'makanan'})</span></div>
-                      <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                          <span class="badge-owner"><i class="fa-solid fa-user-tag"></i> ${p.owner || 'Milik Sendiri'}</span>
+                      <div style="font-size:13px; font-weight:800; color:#fff;">${p.name} <span style="font-size:10px; color:var(--primary); font-weight:600;">(${p.category || 'makanan'})</span></div>
+                      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">
+                          <span class="badge-owner"><i class="fa-solid fa-user"></i> ${p.owner || 'Milik Sendiri'}</span>
                           <span class="badge-cut"><i class="fa-solid fa-percent"></i> Potong: ${p.cutPercent || 0}%</span>
                       </div>
-                      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">${p.desc || '-'}</div>
+                      <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">${p.desc || '-'}</div>
                       <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Terjual: <b>${p.soldCount || 0} pcs</b></div>
                   </div>
                   <div style="text-align:right;">
-                      <div style="font-weight:800; color:var(--primary); font-size:13px; margin-bottom:6px;">${formatRp(p.price)}</div>
+                      <div style="font-weight:800; color:var(--primary); font-size:14px; margin-bottom:8px;">${formatRp(p.price)}</div>
                       <button type="button" class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
                   </div>
               </div>
@@ -811,7 +831,7 @@
       const desc = document.getElementById('prodDesc').value;
 
       if (!name || isNaN(price)) {
-          alert("Harap isi Nama Menu dan Harga Jual!");
+          alert("Harap isi Nama Menu dan Harga!");
           return;
       }
 
@@ -839,7 +859,7 @@
       const date = document.getElementById('buyDate').value;
 
       if(!title || isNaN(amount)) {
-          alert("Harap isi Keterangan dan Total Biaya!");
+          alert("Harap isi Keterangan dan Biaya!");
           return;
       }
 
@@ -863,23 +883,23 @@
       });
 
       if(filtered.length === 0) {
-          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:20px;">Tidak ada transaksi.</div>`;
+          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:30px;">Tidak ada riwayat transaksi.</div>`;
           return;
       }
 
       list.innerHTML = filtered.map(t => `
-          <div class="card" style="margin-bottom:8px; padding:10px;">
+          <div class="card" style="margin-bottom:8px; padding:12px;">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span class="type-badge ${t.type === 'sale' ? 'badge-sale' : 'badge-buy'}">${t.type === 'sale' ? 'Penjualan' : 'Pembelian'}</span>
+                  <span class="type-badge ${t.type === 'sale' ? 'badge-sale' : 'badge-buy'}">${t.type === 'sale' ? 'Penjualan' : 'Pengeluaran'}</span>
                   <span style="font-size:10px; color:var(--text-muted);">${t.date}</span>
               </div>
-              <div style="font-weight:700; font-size:12px; margin-top:4px;">${t.title}</div>
-              ${t.type === 'sale' ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Bayar: <b style="text-transform:uppercase;">${t.paymentMethod || 'tunai'}</b> ${t.paymentMethod === 'mix' ? `(Cash: ${formatRp(t.cashAmount)} | QRIS: ${formatRp(t.qrisAmount)})` : ''}</div>` : ''}
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-                  <div style="font-weight:800; font-size:13px; color:${t.type === 'sale' ? 'var(--primary)' : 'var(--danger)'};">
+              <div style="font-weight:700; font-size:12px; margin-top:6px; color:#fff;">${t.title}</div>
+              ${t.type === 'sale' ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Metode: <b style="text-transform:uppercase; color:var(--primary);">${t.paymentMethod || 'tunai'}</b> ${t.paymentMethod === 'mix' ? `(Cash: ${formatRp(t.cashAmount)} | QRIS: ${formatRp(t.qrisAmount)})` : ''}</div>` : ''}
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px solid var(--border-color); padding-top:6px;">
+                  <div style="font-weight:800; font-size:14px; color:${t.type === 'sale' ? 'var(--success)' : 'var(--danger)'};">
                       ${t.type === 'sale' ? '+' : '-'}${formatRp(t.amount)}
                   </div>
-                  <div style="display:flex; gap:4px;">
+                  <div style="display:flex; gap:6px;">
                       <button type="button" class="btn btn-secondary btn-sm" onclick="openEditTransactionModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
                       <button type="button" class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')"><i class="fa-solid fa-trash"></i></button>
                   </div>
@@ -920,6 +940,7 @@
       }
   }
 
+  // --- REKAPAN PENJUALAN DINAMIS ---
   window.renderRekapan = function() {
       const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
       const currentMonth = selectedDate.slice(0, 7);
@@ -967,24 +988,43 @@
       const ownerKeys = Object.keys(ownerSales);
 
       if (ownerKeys.length === 0) {
-          ownerCutListEl.innerHTML = '<i>Belum ada produk terjual pada tanggal ini.</i>';
+          ownerCutListEl.innerHTML = '<i style="color:var(--text-muted);">Belum ada penjualan pada tanggal ini.</i>';
       } else {
           ownerCutListEl.innerHTML = ownerKeys.map(k => {
               const sale = ownerSales[k];
               const cut = ownerCuts[k];
               return `
                   <div style="border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
-                      <div style="font-weight:700; color:var(--bg-dark); font-size:11px; margin-bottom:3px;"><i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> ${k}</div>
-                      <div style="display:flex; justify-content:space-between; font-size:10px;"><span>Penjualan Pemilik:</span> <b>${formatRp(sale)}</b></div>
-                      <div style="display:flex; justify-content:space-between; font-size:10px; color:#b45309;"><span>Potongan Pemilik:</span> <b>-${formatRp(cut)}</b></div>
-                      <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--success); margin-top:2px;"><span>Laba Bersih Pemilik Produk:</span> <b>${formatRp(sale - cut)}</b></div>
+                      <div style="font-weight:700; color:#fff; font-size:11px; margin-bottom:3px;"><i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> ${k}</div>
+                      <div style="display:flex; justify-content:space-between; font-size:10px;"><span>Total Penjualan:</span> <b style="color:#fff;">${formatRp(sale)}</b></div>
+                      <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--primary);"><span>Potongan Bagi Hasil:</span> <b>-${formatRp(cut)}</b></div>
+                      <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--success); margin-top:2px;"><span>Hak Pemilik Produk:</span> <b>${formatRp(sale - cut)}</b></div>
                   </div>
               `;
           }).join('');
       }
 
       document.getElementById('dailyTotalCut').innerText = formatRp(totalCutDate);
-      document.getElementById('dailyKurangBayar').innerText = formatRp(dQris - totalCutDate);
+
+      // Hitung Selisih: (Total QRIS - Total Potongan)
+      const selisih = dQris - totalCutDate;
+      const labelEl = document.getElementById('labelSelisih');
+      const valueEl = document.getElementById('dailyValueSelisih');
+
+      if (selisih > 0) {
+          labelEl.innerText = "Uang Lebih (QRIS > Potongan):";
+          valueEl.innerText = "+" + formatRp(selisih);
+          valueEl.className = "text-green";
+      } else if (selisih < 0) {
+          labelEl.innerText = "Kurang Bayar (Potongan > QRIS):";
+          valueEl.innerText = formatRp(selisih); // Otomatis menampilkan minus "-" dari angka negatif
+          valueEl.className = "text-red";
+      } else {
+          labelEl.innerText = "Status Pembayaran:";
+          valueEl.innerText = "Uang Pas (" + formatRp(0) + ")";
+          valueEl.className = "text-neutral";
+      }
+
       document.getElementById('monthlySale').innerText = formatRp(mSale);
       document.getElementById('monthlyBuy').innerText = formatRp(mBuy);
   }
@@ -998,7 +1038,7 @@
 
   window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
 
-  // Load awal
+  // Load Awal
   fetchDataFromSheet();
 </script>
 </body>
