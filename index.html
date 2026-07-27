@@ -19,7 +19,6 @@
             --border-color: #e5e1dd;
             --success: #10b981;
             --danger: #ef4444;
-            --warning: #f59e0b;
             --radius-md: 14px;
             --radius-sm: 8px;
         }
@@ -39,7 +38,7 @@
         .brand-info h1 { font-size: 15px; font-weight: 700; color: #fff; }
         .brand-info span { font-size: 11px; color: #d7ccc8; }
         
-        .autosave-badge { background: rgba(217, 119, 6, 0.2); color: #fbbf24; font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(217, 119, 6, 0.4); }
+        .autosave-badge { background: rgba(217, 119, 6, 0.2); color: #fbbf24; font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(217, 119, 6, 0.4); cursor: pointer; }
 
         .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
         .tab-view { display: none; }
@@ -105,11 +104,11 @@
             <img src="https://lh3.googleusercontent.com/d/18OkEwhN9AMLrGvfdetN3Bk3ztBIG72bs" class="brand-logo" alt="Logo">
             <div>
                 <h1>KDM ANGKRINGAN</h1>
-                <span>Mobile Cashier</span>
+                <span>Spreadsheet Sync POS</span>
             </div>
         </div>
-        <div class="autosave-badge" id="syncStatus">
-            <i class="fa-solid fa-sync fa-spin"></i> Connecting...
+        <div class="autosave-badge" id="syncStatus" onclick="fetchDataFromSheet()">
+            <i class="fa-solid fa-sync fa-spin"></i> Loading...
         </div>
     </header>
 
@@ -402,60 +401,53 @@
     </div>
 </div>
 
-<!-- SDK Firebase (Realtime Database) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script>
+  // PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFprIp6ztfIC8U8-4UTgLIbMX0OQpiRb1BRwI5gzFmA89rYEyWx8lcjLaRCYKC9ICMuQ/exec";
 
-  // Konfigurasi Database Online Realtime
-  const firebaseConfig = {
-    databaseURL: "https://kdm-angkringan-default-rtdb.asia-southeast1.firebasedatabase.app"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-  const dbRef = ref(database, 'kdm_store');
-
-  let db = {
-      products: [
-          { id: '1', name: 'Nasi Kucing Teri', category: 'makanan', owner: 'Milik Sendiri', cutPercent: 0, price: 4000, desc: 'Nasi gurih dengan sambal teri balado.', soldCount: 15 },
-          { id: '2', name: 'Sate Usus', category: 'makanan', owner: 'Titipan Bu Ani', cutPercent: 10, price: 3000, desc: 'Sate usus bumbu kuning bakar.', soldCount: 30 },
-          { id: '3', name: 'Es Jahe Rempah', category: 'minuman', owner: 'Milik Sendiri', cutPercent: 0, price: 6000, desc: 'Minuman jahe hangat/es segar.', soldCount: 22 }
-      ],
-      transactions: [],
-      pendingList: []
-  };
-
+  let db = { products: [], transactions: [], pendingList: [] };
   let cart = [];
   let activeFilter = 'all';
   let activePendingId = null;
 
   window.formatRp = function(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
-  // SIMPAN DATA KE FIREBASE ONLINE (Otomatis Sync ke Device Lain)
-  window.saveData = function() {
+  // 1. TAMPILKAN / MINTA DATA DARI GOOGLE SHEETS
+  function fetchDataFromSheet() {
+      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Sync...';
+      fetch(SCRIPT_URL)
+          .then(res => res.json())
+          .then(data => {
+              if(data) {
+                  db.products = data.products || [];
+                  db.transactions = data.transactions || [];
+                  db.pendingList = data.pendingList || [];
+              }
+              document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Active';
+              renderAll();
+          })
+          .catch(err => {
+              document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error Sync';
+          });
+  }
+
+  // 2. KIRIM DATA KE GOOGLE SHEETS
+  function sendDataToSheet() {
       document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sync fa-spin"></i> Saving...';
-      set(dbRef, db).then(() => {
-          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-check"></i> Synced';
+      fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(db)
+      }).then(() => {
+          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-sheet-plastic"></i> Sheets Saved';
       }).catch(err => {
-          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error';
+          document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error Save';
       });
   }
 
-  // BACA DATA REALTIME DARI FIREBASE ONLINE
-  onValue(dbRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-          db = data;
-          if (!db.products) db.products = [];
-          if (!db.transactions) db.transactions = [];
-          if (!db.pendingList) db.pendingList = [];
-      } else {
-          saveData(); 
-      }
-      document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-wifi"></i> Online';
-      renderAll();
-  });
+  // Auto Refresh Setiap 10 Detik Agar Perangkat Lain Mengikuti Perubahan secara Real-Time
+  setInterval(fetchDataFromSheet, 10000);
 
   function initDates() {
       const today = new Date().toISOString().split('T')[0];
@@ -644,7 +636,8 @@
       document.getElementById('cartBar').style.display = 'none';
       closeModal('cartModal');
       
-      saveData();
+      renderAll();
+      sendDataToSheet();
   }
 
   function renderPending() {
@@ -689,7 +682,8 @@
   window.deletePending = function(id) {
       if(confirm('Hapus transaksi pending ini?')) {
           db.pendingList = db.pendingList.filter(p => p.id !== id);
-          saveData();
+          renderAll();
+          sendDataToSheet();
       }
   }
 
@@ -776,7 +770,8 @@
       }
 
       closeModal('productModal');
-      saveData();
+      renderAll();
+      sendDataToSheet();
   }
 
   window.openAddBuyModal = function() { document.getElementById('buyModal').classList.add('active'); }
@@ -787,7 +782,8 @@
       if(!db.transactions) db.transactions = [];
       db.transactions.unshift(t);
       closeModal('buyModal');
-      saveData();
+      renderAll();
+      sendDataToSheet();
   }
 
   window.renderRiwayat = function() {
@@ -846,13 +842,15 @@
           t.date = document.getElementById('editTransDate').value;
       }
       closeModal('editTransModal');
-      saveData();
+      renderAll();
+      sendDataToSheet();
   }
 
   window.deleteTransaction = function(id) {
       if(confirm('Yakin menghapus transaksi ini?')) {
           db.transactions = db.transactions.filter(x => String(x.id) !== String(id));
-          saveData();
+          renderAll();
+          sendDataToSheet();
       }
   }
 
@@ -865,11 +863,16 @@
 
       (db.transactions || []).forEach(t => {
           if (t.date === selectedDate && t.type === 'sale') {
-              dCash += (t.cashAmount || (t.paymentMethod === 'tunai' ? t.amount : 0));
-              dQris += (t.qrisAmount || (t.paymentMethod === 'qris' ? t.amount : 0));
+              dCash += Number(t.cashAmount || (t.paymentMethod === 'tunai' ? t.amount : 0));
+              dQris += Number(t.qrisAmount || (t.paymentMethod === 'qris' ? t.amount : 0));
 
-              if (t.items && Array.isArray(t.items)) {
-                  t.items.forEach(item => {
+              let items = t.items;
+              if (typeof items === 'string') {
+                  try { items = JSON.parse(items); } catch(e){ items = []; }
+              }
+
+              if (items && Array.isArray(items)) {
+                  items.forEach(item => {
                       const owner = item.owner || 'Milik Sendiri';
                       const cutPercent = item.cutPercent || 0;
                       const itemTotal = (item.price * item.qty) - (item.discount || 0);
@@ -886,8 +889,8 @@
           }
 
           if (t.date && t.date.startsWith(currentMonth)) {
-              if (t.type === 'sale') mSale += t.amount;
-              if (t.type === 'buy') mBuy += t.amount;
+              if (t.type === 'sale') mSale += Number(t.amount);
+              if (t.type === 'buy') mBuy += Number(t.amount);
           }
       });
 
@@ -928,6 +931,9 @@
   }
 
   window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
+
+  // Ambil Data Pertama Kali Saat Halaman Di-load
+  fetchDataFromSheet();
 </script>
 </body>
 </html>
