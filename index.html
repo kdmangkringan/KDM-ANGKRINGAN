@@ -4,24 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KDM ANGKRINGAN - Smart POS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #f59e0b;
-            --primary-dark: #d97706;
-            --primary-glow: rgba(245, 158, 11, 0.25);
-            --bg-dark: #120a06;
-            --bg-body: #0d0704;
-            --card-bg: #1c1009;
-            --card-border: rgba(217, 119, 6, 0.15);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: #2e1a10;
-            --success: #10b981;
-            --danger: #ef4444;
-            --radius-lg: 20px;
+            --primary: #d97706; /* Warna Tembaga / Amber KDM */
+            --primary-dark: #b45309;
+            --primary-light: #fef3c7;
+            --bg-body: #f1f5f9; /* Latar Belakang Terang */
+            --card-bg: #ffffff; /* Latar Kartu Putih */
+            --card-border: #cbd5e1;
+            --text-main: #0f172a; /* Teks Hitam Pekat untuk Keterbacaan Lansia */
+            --text-muted: #475569; /* Teks Sekunder Gelap */
+            --border-color: #e2e8f0;
+            --success: #15803d; /* Hijau Kontras Tinggi */
+            --danger: #b91c1c; /* Merah Kontras Tinggi */
             --radius-md: 14px;
             --radius-sm: 8px;
         }
@@ -29,95 +27,90 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); }
         
-        .mobile-container { width: 100%; max-width: 480px; height: 100vh; background: linear-gradient(180deg, #180d07 0%, #0d0704 100%); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .mobile-container { width: 100%; max-width: 480px; height: 100vh; background: #f8fafc; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         
         @media (min-height: 700px) and (min-width: 500px) {
-            .mobile-container { height: 94vh; border-radius: 32px; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 0 50px rgba(0,0,0,0.8), 0 0 20px rgba(217, 119, 6, 0.2); }
+            .mobile-container { height: 94vh; border-radius: 24px; border: 2px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         }
 
-        /* Header UI */
-        .app-header { background: rgba(28, 16, 9, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #ffffff; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; }
+        /* Header UI Nuansa KDM */
+        .app-header { background: #78350f; color: #ffffff; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 50; }
         .brand-info { display: flex; align-items: center; gap: 12px; }
-        .brand-logo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
-        .brand-info h1 { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
-        .brand-info span { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .brand-logo { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #fef3c7; }
+        .brand-info h1 { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+        .brand-info span { font-size: 11px; color: #fde68a; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         
         /* Auto Save Status Badge */
-        .autosave-badge { background: rgba(245, 158, 11, 0.1); color: var(--primary); font-size: 10px; padding: 6px 12px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.3); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; }
-        .autosave-badge:active { transform: scale(0.95); }
-        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary); box-shadow: 0 0 8px var(--primary); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.4; transform: scale(0.8); } }
+        .autosave-badge { background: #fff; color: #78350f; font-size: 11px; padding: 6px 12px; border-radius: 20px; font-weight: 800; border: 1px solid #fde68a; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #16a34a; }
 
         /* Content Area */
-        .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; scroll-behavior: smooth; }
-        .tab-view { display: none; opacity: 0; transform: translateY(10px); transition: all 0.3s ease-in-out; }
-        .tab-view.active { display: block; opacity: 1; transform: translateY(0); }
+        .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 110px; }
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
 
         /* Navigation Bar */
-        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(20, 11, 6, 0.95); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 8px 4px 12px 4px; z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--text-muted); font-size: 10px; font-weight: 700; cursor: pointer; padding: 6px; flex: 1; border-radius: 12px; transition: all 0.3s ease; }
-        .nav-item i { font-size: 16px; transition: transform 0.2s ease; }
-        .nav-item.active { color: var(--primary); background: rgba(245, 158, 11, 0.12); }
-        .nav-item.active i { transform: translateY(-2px); }
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #cbd5e1; display: flex; justify-content: space-around; padding: 10px 4px 14px 4px; z-index: 100; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #64748b; font-size: 11px; font-weight: 800; cursor: pointer; padding: 6px; flex: 1; border-radius: 10px; }
+        .nav-item i { font-size: 18px; }
+        .nav-item.active { color: #78350f; background: #fef3c7; }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .section-title { font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; }
+        .section-title { font-size: 18px; font-weight: 800; color: #0f172a; }
 
         /* Cards & Components */
-        .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--card-border); margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .btn { padding: 10px 16px; border-radius: var(--radius-sm); border: none; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; box-shadow: 0 4px 12px var(--primary-glow); }
-        .btn-primary:active { transform: scale(0.97); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .btn-sm { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
+        .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 16px; border: 1px solid var(--card-border); margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .btn { padding: 12px 18px; border-radius: var(--radius-sm); border: none; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: #78350f; color: #ffffff; }
+        .btn-secondary { background: #e2e8f0; color: #0f172a; border: 1px solid #cbd5e1; }
+        .btn-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .btn-sm { padding: 8px 12px; font-size: 12px; border-radius: 8px; }
 
-        .filter-chip { padding: 8px 14px; border-radius: 30px; font-size: 11px; font-weight: 700; border: 1px solid var(--card-border); background: var(--card-bg); cursor: pointer; color: var(--text-muted); flex-shrink: 0; transition: all 0.2s ease; }
-        .filter-chip.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+        .filter-chip { padding: 10px 16px; border-radius: 30px; font-size: 12px; font-weight: 800; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; color: #475569; flex-shrink: 0; }
+        .filter-chip.active { background: #78350f; color: #ffffff; border-color: #78350f; }
 
-        .form-group { margin-bottom: 12px; }
-        .form-label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12px; outline: none; background: rgba(0, 0, 0, 0.4); color: #fff; transition: border 0.2s; }
-        .form-control:focus { border-color: var(--primary); }
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 12px; font-weight: 800; margin-bottom: 6px; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 12px 14px; border: 2px solid #cbd5e1; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; outline: none; background: #ffffff; color: #0f172a; }
+        .form-control:focus { border-color: #78350f; }
 
         /* Grid Produk Kasir */
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .product-card { background: var(--card-bg); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; position: relative; transition: all 0.2s ease; }
-        .product-card:active { transform: scale(0.97); border-color: var(--primary); }
-        .product-name { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 4px; line-height: 1.3; }
-        .product-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-price { font-size: 13px; font-weight: 800; color: var(--primary); }
+        .product-card { background: var(--card-bg); border-radius: var(--radius-md); padding: 14px; border: 2px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; position: relative; }
+        .product-card:active { border-color: #78350f; background: #fef3c7; }
+        .product-name { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 6px; line-height: 1.3; }
+        .product-desc { font-size: 11px; color: #475569; margin-bottom: 12px; line-height: 1.3; font-weight: 600; }
+        .product-price { font-size: 15px; font-weight: 800; color: #92400e; }
         
-        .badge-populer { position: absolute; top: 8px; right: 8px; background: rgba(245, 158, 11, 0.2); color: var(--primary); font-size: 8px; font-weight: 800; padding: 3px 6px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.4); }
-        .badge-owner { display: inline-block; background: rgba(59, 130, 246, 0.15); color: #60a5fa; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-cut { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--primary); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-populer { position: absolute; top: 8px; right: 8px; background: #fef3c7; color: #92400e; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 6px; border: 1px solid #fde68a; }
+        .badge-owner { display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; margin-top: 4px; border: 1px solid #bae6fd; }
+        .badge-cut { display: inline-block; background: #fef3c7; color: #92400e; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; margin-top: 4px; border: 1px solid #fde68a; }
 
-        .cart-bar { position: absolute; bottom: 72px; left: 16px; right: 16px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; padding: 12px 18px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; cursor: pointer; z-index: 90; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4); animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .cart-bar { position: absolute; bottom: 76px; left: 16px; right: 16px; background: #78350f; color: #ffffff; padding: 14px 18px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; cursor: pointer; z-index: 90; box-shadow: 0 6px 16px rgba(120, 53, 15, 0.3); }
 
-        .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px); display: none; justify-content: flex-end; flex-direction: column; z-index: 200; }
+        .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; justify-content: flex-end; flex-direction: column; z-index: 200; }
         .modal-overlay.active { display: flex; }
-        .modal-card { background: #180d07; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; max-height: 85vh; overflow-y: auto; border-top: 1px solid var(--primary); box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal-card { background: #ffffff; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px; max-height: 85vh; overflow-y: auto; border-top: 3px solid #78350f; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
 
         /* Stats Grid */
         .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
-        .stat-card { background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); padding: 10px 12px; border-radius: var(--radius-sm); }
-        .stat-label { font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-        .stat-value { font-size: 14px; font-weight: 800; color: #fff; margin-top: 4px; }
+        .stat-card { background: #f8fafc; border: 1px solid var(--card-border); padding: 12px; border-radius: var(--radius-sm); }
+        .stat-label { font-size: 11px; color: #475569; font-weight: 800; text-transform: uppercase; }
+        .stat-value { font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 4px; }
         
-        .type-badge { padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-sale { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-buy { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge-pending { background: rgba(245, 158, 11, 0.2); color: var(--primary); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .type-badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .badge-sale { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-buy { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
         
-        .cart-item-row { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 8px; }
+        .cart-item-row { background: #f8fafc; border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
 
-        /* Custom Dynamic Rekapan Colors */
-        .text-green { color: var(--success) !important; }
-        .text-red { color: var(--danger) !important; }
-        .text-neutral { color: var(--text-muted) !important; }
-        .bg-recap-box { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; border: 1px solid var(--card-border); margin-top: 12px; }
+        /* Rekapan Dinamis Warna Kontras Tinggi */
+        .text-green { color: var(--success) !important; font-weight: 800; }
+        .text-red { color: var(--danger) !important; font-weight: 800; }
+        .text-neutral { color: var(--text-muted) !important; font-weight: 800; }
+        .bg-recap-box { background: #f8fafc; border-radius: 12px; padding: 14px; border: 2px solid #cbd5e1; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -140,7 +133,7 @@
         <!-- 1. KASIR -->
         <section id="tab-kasir" class="tab-view active">
             <div class="section-header">
-                <span class="section-title"><i class="fa-solid fa-store" style="color:var(--primary); margin-right:6px;"></i> Menu Kasir</span>
+                <span class="section-title"><i class="fa-solid fa-store" style="color:var(--primary);"></i> Menu Kasir</span>
             </div>
             
             <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
@@ -156,7 +149,7 @@
         <!-- 2. PENDING -->
         <section id="tab-pending" class="tab-view">
             <div class="section-header">
-                <span class="section-title"><i class="fa-solid fa-clock" style="color:var(--primary); margin-right:6px;"></i> Daftar Pending</span>
+                <span class="section-title"><i class="fa-solid fa-clock" style="color:var(--primary);"></i> Pesanan Pending</span>
             </div>
             <div id="pendingList"></div>
         </section>
@@ -164,12 +157,12 @@
         <!-- 3. DAFTAR MENU -->
         <section id="tab-produk" class="tab-view">
             <div class="section-header">
-                <span class="section-title"><i class="fa-solid fa-utensils" style="color:var(--primary); margin-right:6px;"></i> Kelola Menu</span>
+                <span class="section-title"><i class="fa-solid fa-utensils" style="color:var(--primary);"></i> Kelola Menu</span>
                 <button type="button" class="btn btn-primary btn-sm" onclick="openAddProductModal()"><i class="fa-solid fa-plus"></i> Tambah</button>
             </div>
 
-            <div class="card" style="padding: 10px; margin-bottom: 12px;">
-                <label class="form-label" style="margin-bottom: 4px;"><i class="fa-solid fa-filter"></i> Filter Kepemilikan</label>
+            <div class="card" style="padding: 12px; margin-bottom: 12px;">
+                <label class="form-label" style="margin-bottom: 4px;"><i class="fa-solid fa-filter"></i> Filter Pemilik Menu</label>
                 <select id="ownerFilterSelect" class="form-control" onchange="renderProducts()">
                     <option value="all">Semua Pemilik</option>
                 </select>
@@ -181,15 +174,15 @@
         <!-- 4. RIWAYAT TRANSAKSI -->
         <section id="tab-riwayat" class="tab-view">
             <div class="section-header">
-                <span class="section-title"><i class="fa-solid fa-list-check" style="color:var(--primary); margin-right:6px;"></i> Transaksi</span>
+                <span class="section-title"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Riwayat Transaksi</span>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="openAddBuyModal()"><i class="fa-solid fa-cart-plus"></i> Pengeluaran</button>
             </div>
             
-            <div class="card" style="padding: 10px;">
-                <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; color:var(--text-muted);"><i class="fa-solid fa-calendar-days"></i> FILTER TANGGAL</div>
+            <div class="card" style="padding: 12px;">
+                <div style="font-size: 12px; font-weight: 800; margin-bottom: 6px; color:var(--text-muted);"><i class="fa-solid fa-calendar-days"></i> FILTER TANGGAL</div>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <input type="date" id="filterStartDate" class="form-control" onchange="renderRiwayat()">
-                    <span style="font-size: 10px; color:var(--text-muted);">s/d</span>
+                    <span style="font-size: 12px; font-weight:800; color:var(--text-muted);">s/d</span>
                     <input type="date" id="filterEndDate" class="form-control" onchange="renderRiwayat()">
                 </div>
             </div>
@@ -200,7 +193,7 @@
         <!-- 5. REKAPAN -->
         <section id="tab-rekapan" class="tab-view">
             <div class="section-header">
-                <span class="section-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary); margin-right:6px;"></i> Rekapan Penjualan</span>
+                <span class="section-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary);"></i> Rekapan Penjualan</span>
             </div>
 
             <div class="card" style="padding: 12px;">
@@ -209,8 +202,8 @@
             </div>
 
             <div class="card">
-                <div style="font-size: 13px; font-weight: 800; margin-bottom: 12px; color: var(--primary);">
-                    <i class="fa-solid fa-calculator"></i> Ringkasan Tanggal: <span id="recapDateLabel" style="color:#fff;"></span>
+                <div style="font-size: 15px; font-weight: 800; margin-bottom: 12px; color: #78350f;">
+                    <i class="fa-solid fa-calculator"></i> Ringkasan Tanggal: <span id="recapDateLabel" style="color:#0f172a;"></span>
                 </div>
                 <div class="stat-grid">
                     <div class="stat-card">
@@ -223,34 +216,34 @@
                     </div>
                 </div>
 
-                <div style="margin-top:12px; background:rgba(0,0,0,0.25); padding:12px; border-radius:10px; border:1px solid var(--card-border);">
-                    <div style="font-size:11px; font-weight:800; margin-bottom:8px; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
+                <div style="margin-top:12px; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid var(--card-border);">
+                    <div style="font-size:12px; font-weight:800; margin-bottom:8px; color:#0f172a; border-bottom:2px solid var(--border-color); padding-bottom:6px; text-transform:uppercase;">
                         Rekapan Pemilik Produk
                     </div>
-                    <div id="ownerCutsList" style="font-size:11px; color:var(--text-muted);">
+                    <div id="ownerCutsList" style="font-size:12px; color:var(--text-muted);">
                         -
                     </div>
                 </div>
 
-                <!-- Bagian Uang Lebih / Kurang Bayar Dinamis -->
+                <!-- Bagian Uang Lebih / Kurang Bayar Dinamis (Besar & Jelas) -->
                 <div class="bg-recap-box">
-                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; color:var(--text-muted);">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--text-muted);">
                         <span>Total Potongan Hari Ini:</span>
-                        <b id="dailyTotalCut" style="color:var(--primary);">Rp 0</b>
+                        <b id="dailyTotalCut" style="color:#92400e;">Rp 0</b>
                     </div>
-                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:800; border-top:1px solid var(--border-color); padding-top:8px; align-items:center;">
-                        <span id="labelSelisih">Uang Lebih / Kurang Bayar:</span>
-                        <b id="dailyValueSelisih" style="font-size:14px;">Rp 0</b>
+                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; border-top:2px solid var(--border-color); padding-top:8px; align-items:center;">
+                        <span id="labelSelisih" style="color:#0f172a;">Status Pembayaran:</span>
+                        <b id="dailyValueSelisih" style="font-size:16px;">Rp 0</b>
                     </div>
                 </div>
             </div>
 
             <div class="card">
-                <div style="font-size: 13px; font-weight: 800; margin-bottom: 10px; color:#fff;"><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Performa Bulan Ini</div>
+                <div style="font-size: 15px; font-weight: 800; margin-bottom: 10px; color:#0f172a;"><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Performa Bulan Ini</div>
                 <div class="stat-grid">
                     <div class="stat-card">
                         <div class="stat-label">Total Omset</div>
-                        <div class="stat-value" id="monthlySale">Rp 0</div>
+                        <div class="stat-value" id="monthlySale" style="color:var(--success);">Rp 0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Total Pengeluaran</div>
@@ -264,10 +257,10 @@
     <!-- Cart Bar -->
     <div class="cart-bar" id="cartBar" onclick="openCartModal()" style="display:none;">
         <div>
-            <div style="font-size:10px; font-weight:700; text-transform:uppercase; opacity:0.8;">Total Dalam Keranjang</div>
-            <div style="font-weight:800; font-size:15px;" id="cartTotalPreview">Rp 0</div>
+            <div style="font-size:11px; font-weight:800; text-transform:uppercase; opacity:0.9;">Total Dalam Keranjang</div>
+            <div style="font-weight:800; font-size:18px;" id="cartTotalPreview">Rp 0</div>
         </div>
-        <div style="font-size:12px; font-weight:800; display:flex; align-items:center; gap:6px;">Lihat Pesanan <i class="fa-solid fa-arrow-right"></i></div>
+        <div style="font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;">Lihat Pesanan <i class="fa-solid fa-arrow-right"></i></div>
     </div>
 
     <!-- Navigation Bar -->
@@ -283,8 +276,8 @@
     <div class="modal-overlay" id="cartModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px; font-weight:800;"><i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> Detail Transaksi</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('cartModal')"><i class="fa-solid fa-xmark"></i></button>
+                <h3 style="font-size: 16px; font-weight:800; color:#0f172a;"><i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> Detail Transaksi</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('cartModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
             
             <div id="cartItemsList" style="margin-bottom:12px;"></div>
@@ -293,7 +286,7 @@
                 <label class="form-label">Tipe Transaksi</label>
                 <select id="transactionType" class="form-control" onchange="toggleTransactionType()">
                     <option value="direct">Penjualan Langsung</option>
-                    <option value="pending">Pending</option>
+                    <option value="pending">Pending (Catat Dulu)</option>
                 </select>
             </div>
 
@@ -323,13 +316,13 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 14px; font-size: 12px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);">
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--text-muted);"><span>Subtotal:</span><b id="summarySubtotal" style="color:#fff;">Rp 0</b></div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--danger);"><span>Total Diskon:</span><b id="summaryDiscount">-Rp 0</b></div>
-                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px; margin-top:6px; border-top:1px solid var(--border-color); padding-top:6px;"><span>Total Akhir:</span><b id="summaryTotal" style="color:var(--primary);">Rp 0</b></div>
+            <div style="margin-bottom: 14px; font-size: 13px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 2px solid var(--card-border);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:var(--text-muted); font-weight:700;"><span>Subtotal:</span><b id="summarySubtotal" style="color:#0f172a;">Rp 0</b></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:var(--danger); font-weight:700;"><span>Total Diskon:</span><b id="summaryDiscount">-Rp 0</b></div>
+                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; margin-top:6px; border-top:2px solid var(--border-color); padding-top:6px; color:#78350f;"><span>Total Akhir:</span><b id="summaryTotal">Rp 0</b></div>
             </div>
 
-            <button type="button" class="btn btn-primary" style="width:100%;" id="checkoutBtn" onclick="processCheckout()">Proses Transaksi</button>
+            <button type="button" class="btn btn-primary" style="width:100%; font-size:15px; padding:14px;" id="checkoutBtn" onclick="processCheckout()">Proses Transaksi</button>
         </div>
     </div>
 
@@ -337,8 +330,8 @@
     <div class="modal-overlay" id="productModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px; font-weight:800;" id="productModalTitle">Tambah Menu</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('productModal')"><i class="fa-solid fa-xmark"></i></button>
+                <h3 style="font-size: 16px; font-weight:800; color:#0f172a;" id="productModalTitle">Tambah Menu</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('productModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
             <div>
                 <input type="hidden" id="prodId">
@@ -369,7 +362,7 @@
                     <label class="form-label">Keterangan / Deskripsi</label>
                     <textarea id="prodDesc" class="form-control" rows="2" placeholder="Catatan..."></textarea>
                 </div>
-                <button type="button" onclick="saveProduct(event)" class="btn btn-primary" style="width:100%;">Simpan Menu</button>
+                <button type="button" onclick="saveProduct(event)" class="btn btn-primary" style="width:100%; font-size:15px; padding:14px;">Simpan Menu</button>
             </div>
         </div>
     </div>
@@ -378,8 +371,8 @@
     <div class="modal-overlay" id="editTransModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px; font-weight:800;">Edit Transaksi</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('editTransModal')"><i class="fa-solid fa-xmark"></i></button>
+                <h3 style="font-size: 16px; font-weight:800; color:#0f172a;">Edit Transaksi</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('editTransModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
             <div>
                 <input type="hidden" id="editTransId">
@@ -395,7 +388,7 @@
                     <label class="form-label">Tanggal</label>
                     <input type="date" id="editTransDate" class="form-control">
                 </div>
-                <button type="button" onclick="saveEditTransaction(event)" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+                <button type="button" onclick="saveEditTransaction(event)" class="btn btn-primary" style="width:100%; font-size:15px; padding:14px;">Simpan Perubahan</button>
             </div>
         </div>
     </div>
@@ -404,8 +397,8 @@
     <div class="modal-overlay" id="buyModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 14px; font-weight:800;">Catat Pengeluaran</h3>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('buyModal')"><i class="fa-solid fa-xmark"></i></button>
+                <h3 style="font-size: 16px; font-weight:800; color:#0f172a;">Catat Pengeluaran</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('buyModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
             <div>
                 <div class="form-group">
@@ -420,7 +413,7 @@
                     <label class="form-label">Tanggal</label>
                     <input type="date" id="buyDate" class="form-control">
                 </div>
-                <button type="button" onclick="savePurchase(event)" class="btn btn-primary" style="width:100%;">Simpan Pengeluaran</button>
+                <button type="button" onclick="savePurchase(event)" class="btn btn-primary" style="width:100%; font-size:15px; padding:14px;">Simpan Pengeluaran</button>
             </div>
         </div>
     </div>
@@ -428,7 +421,7 @@
 
 <script>
   // PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
-  const SCRIPT_URL = "https://script.google.com/macros/library/d/1jwA0DKR7tsJmZ_sEcxKXdGxaFLvavOfmqef1dI9SlAxDDlzVfDqukI_E/4";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5PeScNo_JW-T1hK-C5bpeXtzR3_3nVUw3Yr4JKuN1QIcPSjbF1fyTP2dFuagPvkB2Qw/exec";
 
   let db = { products: [], transactions: [], pendingList: [] };
   let cart = [];
@@ -466,18 +459,18 @@
                           db.pendingList = parsed.pendingList || db.pendingList || [];
                           saveLocal();
                       }
-                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#10b981; box-shadow:0 0 8px #10b981;"></div> Connected';
+                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Terhubung';
                   } catch(e) {
-                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Local Active';
+                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
                   }
                   renderAll();
               })
               .catch(err => {
                   console.error("Fetch error:", err);
-                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Local Active';
+                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
               });
       } else {
-          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Local Active';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
       }
   }
 
@@ -496,7 +489,7 @@
 
       if (!SCRIPT_URL || SCRIPT_URL === "ISI_DENGAN_URL_WEB_APP_ANDA") return;
 
-      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Saving...';
+      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Menyimpan...';
 
       const payload = JSON.stringify(db);
 
@@ -506,10 +499,10 @@
           headers: { 'Content-Type': 'application/json' },
           body: payload
       }).then(() => {
-          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#10b981; box-shadow:0 0 8px #10b981;"></div> Saved';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Tersimpan';
       }).catch(err => {
           console.error("Save error:", err);
-          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#ef4444; box-shadow:0 0 8px #ef4444;"></div> Error';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#b91c1c;"></div> Error';
       });
   }
 
@@ -546,7 +539,7 @@
       else if (activeFilter === 'populer') items.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
 
       if (items.length === 0) {
-          grid.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--text-muted); font-size:12px; padding:30px;">Belum ada menu tersedia. Tambahkan menu di tab 'Menu'.</div>`;
+          grid.innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--text-muted); font-size:13px; font-weight:700; padding:30px;">Belum ada menu tersedia. Tambahkan menu di tab 'Menu'.</div>`;
           return;
       }
 
@@ -610,22 +603,22 @@
 
       list.innerHTML = cart.map(c => `
           <div class="cart-item-row">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                  <span style="font-weight:700; font-size:12px; color:#fff;">${c.name}</span>
-                  <div style="display:flex; align-items:center; gap:6px;">
-                      <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px;" onclick="updateItemQty('${c.id}', -1)">-</button>
-                      <span style="font-size:12px; font-weight:800; color:#fff;">${c.qty}</span>
-                      <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px;" onclick="updateItemQty('${c.id}', 1)">+</button>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-weight:800; font-size:14px; color:#0f172a;">${c.name}</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <button type="button" class="btn btn-secondary btn-sm" style="padding:4px 12px; font-size:14px;" onclick="updateItemQty('${c.id}', -1)">-</button>
+                      <span style="font-size:15px; font-weight:800; color:#0f172a;">${c.qty}</span>
+                      <button type="button" class="btn btn-secondary btn-sm" style="padding:4px 12px; font-size:14px;" onclick="updateItemQty('${c.id}', 1)">+</button>
                   </div>
               </div>
-              <div style="display:flex; gap:6px; align-items:center;">
+              <div style="display:flex; gap:8px; align-items:center;">
                   <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                      <span style="font-size:10px; color:var(--text-muted); font-weight:600;">Harga:</span>
-                      <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.price}" oninput="updateItemPrice('${c.id}', this.value)">
+                      <span style="font-size:11px; color:var(--text-muted); font-weight:800;">Harga:</span>
+                      <input type="number" class="form-control" style="padding:6px 8px; font-size:12px;" value="${c.price}" oninput="updateItemPrice('${c.id}', this.value)">
                   </div>
                   <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                      <span style="font-size:10px; color:var(--danger); font-weight:600;">Diskon:</span>
-                      <input type="number" class="form-control" style="padding:2px 6px; font-size:11px;" value="${c.discount || ''}" placeholder="0" oninput="updateItemDiscount('${c.id}', this.value)">
+                      <span style="font-size:11px; color:var(--danger); font-weight:800;">Diskon:</span>
+                      <input type="number" class="form-control" style="padding:6px 8px; font-size:12px;" value="${c.discount || ''}" placeholder="0" oninput="updateItemDiscount('${c.id}', this.value)">
                   </div>
               </div>
           </div>
@@ -714,22 +707,22 @@
       const items = db.pendingList || [];
 
       if (items.length === 0) {
-          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:30px;">Tidak ada pesanan pending.</div>`;
+          list.innerHTML = `<div style="text-align:center; font-size:13px; font-weight:700; color:var(--text-muted); padding:30px;">Tidak ada pesanan pending.</div>`;
           return;
       }
 
       list.innerHTML = items.map(p => `
-          <div class="card" style="margin-bottom:10px;">
+          <div class="card" style="margin-bottom:12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <span class="type-badge badge-pending"><i class="fa-solid fa-user"></i> ${p.customerName}</span>
-                  <span style="font-size:10px; color:var(--text-muted);">${p.date}</span>
+                  <span style="font-size:11px; font-weight:800; color:var(--text-muted);">${p.date}</span>
               </div>
-              <div style="font-size:11px; color:var(--text-main); margin-bottom:8px;">
+              <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:10px;">
                   ${p.items.map(i => `<div>• ${i.name} x${i.qty} (${formatRp((i.price * i.qty) - (i.discount || 0))})</div>`).join('')}
               </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:8px;">
-                  <div style="font-weight:800; font-size:14px; color:var(--primary);">${formatRp(p.amount)}</div>
-                  <div style="display:flex; gap:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-top:2px solid var(--border-color); padding-top:10px;">
+                  <div style="font-weight:800; font-size:16px; color:#78350f;">${formatRp(p.amount)}</div>
+                  <div style="display:flex; gap:8px;">
                       <button type="button" class="btn btn-danger btn-sm" onclick="deletePending('${p.id}')"><i class="fa-solid fa-trash"></i></button>
                       <button type="button" class="btn btn-primary btn-sm" onclick="payPending('${p.id}')"><i class="fa-solid fa-cash-register"></i> Bayar</button>
                   </div>
@@ -768,24 +761,24 @@
       if (selectedOwner !== 'all') filteredProducts = filteredProducts.filter(p => (p.owner || 'Milik Sendiri') === selectedOwner);
 
       if(filteredProducts.length === 0) {
-          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:30px;">Tidak ada menu yang sesuai.</div>`;
+          list.innerHTML = `<div style="text-align:center; font-size:13px; font-weight:700; color:var(--text-muted); padding:30px;">Tidak ada menu yang sesuai.</div>`;
           return;
       }
 
       list.innerHTML = filteredProducts.map(p => `
-          <div class="card" style="margin-bottom:8px;">
+          <div class="card" style="margin-bottom:10px;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                   <div>
-                      <div style="font-size:13px; font-weight:800; color:#fff;">${p.name} <span style="font-size:10px; color:var(--primary); font-weight:600;">(${p.category || 'makanan'})</span></div>
-                      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">
+                      <div style="font-size:15px; font-weight:800; color:#0f172a;">${p.name} <span style="font-size:11px; color:#78350f; font-weight:800;">(${p.category || 'makanan'})</span></div>
+                      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;">
                           <span class="badge-owner"><i class="fa-solid fa-user"></i> ${p.owner || 'Milik Sendiri'}</span>
                           <span class="badge-cut"><i class="fa-solid fa-percent"></i> Potong: ${p.cutPercent || 0}%</span>
                       </div>
-                      <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">${p.desc || '-'}</div>
-                      <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Terjual: <b>${p.soldCount || 0} pcs</b></div>
+                      <div style="font-size:12px; font-weight:600; color:var(--text-muted); margin-top:6px;">${p.desc || '-'}</div>
+                      <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-top:4px;">Terjual: <b>${p.soldCount || 0} pcs</b></div>
                   </div>
                   <div style="text-align:right;">
-                      <div style="font-weight:800; color:var(--primary); font-size:14px; margin-bottom:8px;">${formatRp(p.price)}</div>
+                      <div style="font-weight:800; color:#78350f; font-size:16px; margin-bottom:8px;">${formatRp(p.price)}</div>
                       <button type="button" class="btn btn-secondary btn-sm" onclick="openEditProductModal('${p.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
                   </div>
               </div>
@@ -883,24 +876,24 @@
       });
 
       if(filtered.length === 0) {
-          list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding:30px;">Tidak ada riwayat transaksi.</div>`;
+          list.innerHTML = `<div style="text-align:center; font-size:13px; font-weight:700; color:var(--text-muted); padding:30px;">Tidak ada riwayat transaksi.</div>`;
           return;
       }
 
       list.innerHTML = filtered.map(t => `
-          <div class="card" style="margin-bottom:8px; padding:12px;">
+          <div class="card" style="margin-bottom:10px; padding:14px;">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                   <span class="type-badge ${t.type === 'sale' ? 'badge-sale' : 'badge-buy'}">${t.type === 'sale' ? 'Penjualan' : 'Pengeluaran'}</span>
-                  <span style="font-size:10px; color:var(--text-muted);">${t.date}</span>
+                  <span style="font-size:11px; font-weight:800; color:var(--text-muted);">${t.date}</span>
               </div>
-              <div style="font-weight:700; font-size:12px; margin-top:6px; color:#fff;">${t.title}</div>
-              ${t.type === 'sale' ? `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Metode: <b style="text-transform:uppercase; color:var(--primary);">${t.paymentMethod || 'tunai'}</b> ${t.paymentMethod === 'mix' ? `(Cash: ${formatRp(t.cashAmount)} | QRIS: ${formatRp(t.qrisAmount)})` : ''}</div>` : ''}
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px solid var(--border-color); padding-top:6px;">
-                  <div style="font-weight:800; font-size:14px; color:${t.type === 'sale' ? 'var(--success)' : 'var(--danger)'};">
+              <div style="font-weight:800; font-size:14px; margin-top:8px; color:#0f172a;">${t.title}</div>
+              ${t.type === 'sale' ? `<div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-top:4px;">Metode: <b style="text-transform:uppercase; color:#78350f;">${t.paymentMethod || 'tunai'}</b> ${t.paymentMethod === 'mix' ? `(Cash: ${formatRp(t.cashAmount)} | QRIS: ${formatRp(t.qrisAmount)})` : ''}</div>` : ''}
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top:2px solid var(--border-color); padding-top:8px;">
+                  <div style="font-weight:800; font-size:16px; color:${t.type === 'sale' ? 'var(--success)' : 'var(--danger)'};">
                       ${t.type === 'sale' ? '+' : '-'}${formatRp(t.amount)}
                   </div>
-                  <div style="display:flex; gap:6px;">
-                      <button type="button" class="btn btn-secondary btn-sm" onclick="openEditTransactionModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+                  <div style="display:flex; gap:8px;">
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="openEditTransactionModal('${t.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
                       <button type="button" class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')"><i class="fa-solid fa-trash"></i></button>
                   </div>
               </div>
@@ -988,17 +981,17 @@
       const ownerKeys = Object.keys(ownerSales);
 
       if (ownerKeys.length === 0) {
-          ownerCutListEl.innerHTML = '<i style="color:var(--text-muted);">Belum ada penjualan pada tanggal ini.</i>';
+          ownerCutListEl.innerHTML = '<i style="color:var(--text-muted); font-weight:700;">Belum ada penjualan pada tanggal ini.</i>';
       } else {
           ownerCutListEl.innerHTML = ownerKeys.map(k => {
               const sale = ownerSales[k];
               const cut = ownerCuts[k];
               return `
-                  <div style="border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
-                      <div style="font-weight:700; color:#fff; font-size:11px; margin-bottom:3px;"><i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> ${k}</div>
-                      <div style="display:flex; justify-content:space-between; font-size:10px;"><span>Total Penjualan:</span> <b style="color:#fff;">${formatRp(sale)}</b></div>
-                      <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--primary);"><span>Potongan Bagi Hasil:</span> <b>-${formatRp(cut)}</b></div>
-                      <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--success); margin-top:2px;"><span>Hak Pemilik Produk:</span> <b>${formatRp(sale - cut)}</b></div>
+                  <div style="border-bottom: 2px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 8px;">
+                      <div style="font-weight:800; color:#0f172a; font-size:13px; margin-bottom:4px;"><i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> ${k}</div>
+                      <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;"><span>Total Penjualan:</span> <b style="color:#0f172a;">${formatRp(sale)}</b></div>
+                      <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:#92400e;"><span>Potongan Bagi Hasil:</span> <b>-${formatRp(cut)}</b></div>
+                      <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:800; color:var(--success); margin-top:2px;"><span>Hak Pemilik Produk:</span> <b>${formatRp(sale - cut)}</b></div>
                   </div>
               `;
           }).join('');
@@ -1012,12 +1005,12 @@
       const valueEl = document.getElementById('dailyValueSelisih');
 
       if (selisih > 0) {
-          labelEl.innerText = "Uang Lebih (QRIS > Potongan):";
+          labelEl.innerText = "Uang Lebih:";
           valueEl.innerText = "+" + formatRp(selisih);
           valueEl.className = "text-green";
       } else if (selisih < 0) {
-          labelEl.innerText = "Kurang Bayar (Potongan > QRIS):";
-          valueEl.innerText = formatRp(selisih); // Otomatis menampilkan minus "-" dari angka negatif
+          labelEl.innerText = "Kurang Bayar:";
+          valueEl.innerText = formatRp(selisih);
           valueEl.className = "text-red";
       } else {
           labelEl.innerText = "Status Pembayaran:";
