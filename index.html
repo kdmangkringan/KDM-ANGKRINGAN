@@ -207,7 +207,7 @@
                 <input type="date" id="recapDateFilter" class="form-control" onchange="renderRekapan()">
             </div>
 
-            <!-- Kartu Saldo Awal (Ditambahkan di bawah Pilih Tanggal) -->
+            <!-- Kartu Saldo Awal -->
             <div class="card" style="padding: 12px; border: 2px solid var(--primary); background: #fffbe2;">
                 <label class="form-label" style="color: #78350f; margin-bottom: 4px;">
                     <i class="fa-solid fa-wallet"></i> Saldo Awal Kas Hari Ini (Rp)
@@ -269,7 +269,7 @@
                 </div>
             </div>
 
-            <!-- Performa Bulan Ini + Rekapan Pemilik Produk & Grafik Visual -->
+            <!-- Performa Bulan Ini + Grafik Visual -->
             <div class="card">
                 <div style="font-size: 15px; font-weight: 800; margin-bottom: 10px; color:#0f172a;">
                     <i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Performa Bulan Ini
@@ -303,12 +303,39 @@
                     -
                 </div>
 
-                <!-- Grafik Visual Rekapan Pemilik Produk (Penjualan saja) -->
+                <!-- Grafik Visual Rekapan Pemilik Produk -->
                 <div style="font-size:12px; font-weight:800; color:#0f172a; margin-top:10px; text-transform:uppercase;">
                     <i class="fa-solid fa-chart-pie" style="color:var(--primary);"></i> Grafik Penjualan Pemilik Produk
                 </div>
                 <div class="chart-container">
                     <canvas id="monthlyOwnerChart"></canvas>
+                </div>
+            </div>
+
+            <!-- KARTU RINGKASAN BAGI HASIL BULAN INI -->
+            <div class="card" style="border: 2px solid var(--primary); background: #fefce8;">
+                <div style="font-size: 15px; font-weight: 800; margin-bottom: 12px; color: #78350f;">
+                    <i class="fa-solid fa-hand-holding-dollar" style="color:var(--primary);"></i> Ringkasan Bagi Hasil Bulan Ini
+                </div>
+                <div class="stat-card" style="background: #ffffff; border: 1px solid #fde68a;">
+                    <div class="stat-label" style="color: #92400e;">Total Potongan Bagi Hasil Bulan Ini</div>
+                    <div class="stat-value" id="monthlyTotalCut" style="color: #92400e; font-size: 20px;">Rp 0</div>
+                </div>
+
+                <div style="margin-top: 14px;">
+                    <button type="button" class="btn btn-primary" style="width: 100%; font-size: 14px;" onclick="openAddWithdrawalModal()">
+                        <i class="fa-solid fa-money-bill-transfer"></i> Input Penarikan Bagi Hasil
+                    </button>
+                </div>
+
+                <!-- RIWAYAT PENARIKAN BAGI HASIL -->
+                <div style="margin-top: 16px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 8px; text-transform: uppercase;">
+                        <i class="fa-solid fa-clock-rotate-left" style="color:var(--primary);"></i> Riwayat Penarikan Bagi Hasil
+                    </div>
+                    <div id="withdrawalList">
+                        <!-- List Penarikan -->
+                    </div>
                 </div>
             </div>
         </section>
@@ -514,12 +541,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Penarikan Bagi Hasil -->
+    <div class="modal-overlay" id="withdrawalModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 16px; font-weight:800; color:#0f172a;" id="withdrawalModalTitle">Input Penarikan Bagi Hasil</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('withdrawalModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
+            </div>
+            <div>
+                <input type="hidden" id="withdrawalId">
+                <div class="form-group">
+                    <label class="form-label">Keterangan Penarikan</label>
+                    <input type="text" id="withdrawalDesc" class="form-control" placeholder="Cth: Penarikan Bagi Hasil Owner A">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total Penarikan (Rp)</label>
+                    <input type="number" id="withdrawalAmount" class="form-control" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" id="withdrawalDate" class="form-control">
+                </div>
+                <button type="button" onclick="saveWithdrawal(event)" class="btn btn-primary" style="width:100%; font-size:15px; padding:14px;">Simpan Penarikan</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtW-3eQ5fn3AG4sUcS1_BV0Y1YmuMyiP8-8XnJb0EinroitrhTdl2syWisSZk0g5f1BQ/exec";
 
-  let db = { products: [], transactions: [], pendingList: [], initialBalances: {} };
+  let db = { products: [], transactions: [], pendingList: [], initialBalances: {}, withdrawals: [] };
   let cart = [];
   let activeFilter = 'all';
   let activePendingId = null;
@@ -538,11 +591,13 @@
           const localTransactions = localStorage.getItem('kdm_transactions');
           const localPending = localStorage.getItem('kdm_pending');
           const localBalances = localStorage.getItem('kdm_initial_balances');
+          const localWithdrawals = localStorage.getItem('kdm_withdrawals');
 
           if (localProducts) db.products = JSON.parse(localProducts);
           if (localTransactions) db.transactions = JSON.parse(localTransactions);
           if (localPending) db.pendingList = JSON.parse(localPending);
           if (localBalances) db.initialBalances = JSON.parse(localBalances);
+          if (localWithdrawals) db.withdrawals = JSON.parse(localWithdrawals);
       } catch (e) {
           console.error("Error membaca localStorage", e);
       }
@@ -560,6 +615,7 @@
                           db.transactions = parsed.transactions || db.transactions || [];
                           db.pendingList = parsed.pendingList || db.pendingList || [];
                           db.initialBalances = parsed.initialBalances || db.initialBalances || {};
+                          db.withdrawals = parsed.withdrawals || db.withdrawals || [];
                           saveLocal();
                       }
                       document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Terhubung';
@@ -583,6 +639,7 @@
           localStorage.setItem('kdm_transactions', JSON.stringify(db.transactions || []));
           localStorage.setItem('kdm_pending', JSON.stringify(db.pendingList || []));
           localStorage.setItem('kdm_initial_balances', JSON.stringify(db.initialBalances || {}));
+          localStorage.setItem('kdm_withdrawals', JSON.stringify(db.withdrawals || []));
       } catch(e) {
           console.error("Gagal simpan lokal", e);
       }
@@ -616,6 +673,7 @@
       if(!document.getElementById('filterEndDate').value) document.getElementById('filterEndDate').value = today;
       if(!document.getElementById('buyDate').value) document.getElementById('buyDate').value = today;
       if(!document.getElementById('recapDateFilter').value) document.getElementById('recapDateFilter').value = today;
+      if(!document.getElementById('withdrawalDate').value) document.getElementById('withdrawalDate').value = today;
   }
 
   window.renderAll = function() {
@@ -1108,7 +1166,62 @@
       renderRekapanCalculations();
   }
 
-  // --- REKAPAN PENJUALAN DINAMIS, SALDO AWAL, & PERFORMA BULANAN DENGAN GRAFIK ---
+  // --- PENARIKAN BAGI HASIL ---
+  window.openAddWithdrawalModal = function() {
+      document.getElementById('withdrawalModalTitle').innerText = 'Input Penarikan Bagi Hasil';
+      document.getElementById('withdrawalId').value = '';
+      document.getElementById('withdrawalDesc').value = '';
+      document.getElementById('withdrawalAmount').value = '';
+      document.getElementById('withdrawalDate').value = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
+      document.getElementById('withdrawalModal').classList.add('active');
+  }
+
+  window.openEditWithdrawalModal = function(id) {
+      const w = (db.withdrawals || []).find(x => String(x.id) === String(id));
+      if (!w) return;
+      document.getElementById('withdrawalModalTitle').innerText = 'Edit Penarikan Bagi Hasil';
+      document.getElementById('withdrawalId').value = w.id;
+      document.getElementById('withdrawalDesc').value = w.desc;
+      document.getElementById('withdrawalAmount').value = w.amount;
+      document.getElementById('withdrawalDate').value = w.date;
+      document.getElementById('withdrawalModal').classList.add('active');
+  }
+
+  window.saveWithdrawal = function(e) {
+      if (e) e.preventDefault();
+      const id = document.getElementById('withdrawalId').value;
+      const desc = document.getElementById('withdrawalDesc').value.trim();
+      const amount = parseFloat(document.getElementById('withdrawalAmount').value);
+      const date = document.getElementById('withdrawalDate').value;
+
+      if (!desc || isNaN(amount)) {
+          alert("Harap isi Keterangan dan Nominal Penarikan!");
+          return;
+      }
+
+      if (!db.withdrawals) db.withdrawals = [];
+
+      if (id) {
+          const w = db.withdrawals.find(x => String(x.id) === String(id));
+          if (w) { w.desc = desc; w.amount = amount; w.date = date; }
+      } else {
+          db.withdrawals.unshift({ id: 'WDR-' + Date.now().toString().slice(-4), desc, amount, date });
+      }
+
+      closeModal('withdrawalModal');
+      renderAll();
+      sendDataToSheet();
+  }
+
+  window.deleteWithdrawal = function(id) {
+      if (confirm('Apakah Anda yakin ingin menghapus riwayat penarikan ini?')) {
+          db.withdrawals = (db.withdrawals || []).filter(x => String(x.id) !== String(id));
+          renderAll();
+          sendDataToSheet();
+      }
+  }
+
+  // --- REKAPAN PENJUALAN DINAMIS & PERFORMA BULANAN ---
   window.renderRekapan = function() {
       const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
       document.getElementById('recapDateLabel').innerText = selectedDate;
@@ -1128,7 +1241,7 @@
       const initialBalance = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
 
       let dCashSale = 0, dQris = 0, dExpense = 0, ownerSales = {}, ownerCuts = {}, totalCutDate = 0;
-      let mSale = 0, mBuy = 0, monthlyOwnerSales = {};
+      let mSale = 0, mBuy = 0, monthlyOwnerSales = {}, monthlyTotalCut = 0;
 
       (db.transactions || []).forEach(t => {
           // --- PENJUALAN HARIAN ---
@@ -1176,10 +1289,13 @@
                   if (items && Array.isArray(items)) {
                       items.forEach(item => {
                           const owner = item.owner || 'Milik Sendiri';
+                          const cutPercent = item.cutPercent || 0;
                           const itemTotal = (item.price * item.qty) - (item.discount || 0);
+                          const cutAmount = (itemTotal * cutPercent) / 100;
 
                           if (!monthlyOwnerSales[owner]) monthlyOwnerSales[owner] = 0;
                           monthlyOwnerSales[owner] += itemTotal;
+                          monthlyTotalCut += cutAmount;
                       });
                   }
               }
@@ -1244,6 +1360,7 @@
       // --- RENDER PERFORMA BULAN INI & REKAPAN PEMILIK BULANAN ---
       document.getElementById('monthlySale').innerText = formatRp(mSale);
       document.getElementById('monthlyBuy').innerText = formatRp(mBuy);
+      document.getElementById('monthlyTotalCut').innerText = formatRp(monthlyTotalCut);
 
       const monthlyOwnerListEl = document.getElementById('monthlyOwnerSalesList');
       const monthlyOwnerKeys = Object.keys(monthlyOwnerSales);
@@ -1259,8 +1376,35 @@
           `).join('');
       }
 
+      // Render Riwayat Penarikan
+      renderWithdrawals(currentMonth);
+
       // --- RENDERING GRAFIK VISUAL ---
       renderCharts(mSale, mBuy, monthlyOwnerSales);
+  }
+
+  function renderWithdrawals(currentMonth) {
+      const withdrawalListEl = document.getElementById('withdrawalList');
+      const filteredWithdrawals = (db.withdrawals || []).filter(w => w.date && w.date.startsWith(currentMonth));
+
+      if (filteredWithdrawals.length === 0) {
+          withdrawalListEl.innerHTML = '<div style="font-size:12px; color:var(--text-muted); font-weight:700; padding: 10px 0;">Belum ada riwayat penarikan bulan ini.</div>';
+          return;
+      }
+
+      withdrawalListEl.innerHTML = filteredWithdrawals.map(w => `
+          <div style="background:#ffffff; border: 1px solid var(--card-border); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                  <div style="font-size: 13px; font-weight: 800; color: #0f172a;">${w.desc}</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top:2px;">Tanggal: ${w.date}</div>
+                  <div style="font-size: 14px; font-weight: 800; color: var(--danger); margin-top: 2px;">-${formatRp(w.amount)}</div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="openEditWithdrawalModal('${w.id}')"><i class="fa-solid fa-pen"></i></button>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="deleteWithdrawal('${w.id}')"><i class="fa-solid fa-trash"></i></button>
+              </div>
+          </div>
+      `).join('');
   }
 
   // Fungsi Render Grafik Menggunakan Chart.js
