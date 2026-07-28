@@ -134,6 +134,7 @@
         <section id="tab-kasir" class="tab-view active">
             <div class="section-header">
                 <span class="section-title"><i class="fa-solid fa-store" style="color:var(--primary);"></i> Menu Kasir</span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAddCustomProductModal()"><i class="fa-solid fa-plus"></i> Tambah Custom</button>
             </div>
             
             <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
@@ -384,6 +385,43 @@
         </div>
     </div>
 
+    <!-- Modal Tambah Custom Produk (Sekali Transaksi) -->
+    <div class="modal-overlay" id="customProductModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 16px; font-weight:800; color:#0f172a;">Tambah Custom (Sekali Transaksi)</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('customProductModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Nama Menu</label>
+                    <input type="text" id="customProdName" class="form-control" placeholder="Cth: Es Teh Manis Jumbo">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori (Manual)</label>
+                    <input type="text" id="customProdCategory" class="form-control" placeholder="Cth: Makanan / Minuman / Snack">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kepemilikan Produk</label>
+                    <input type="text" id="customProdOwner" class="form-control" placeholder="Cth: Milik Sendiri / Titipan Bu Ani">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Potongan Bagi Hasil (%)</label>
+                    <input type="number" step="0.1" id="customProdCut" class="form-control" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Harga Jual (Rp)</label>
+                    <input type="number" id="customProdPrice" class="form-control" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Keterangan / Deskripsi</label>
+                    <textarea id="customProdDesc" class="form-control" rows="2" placeholder="Catatan..."></textarea>
+                </div>
+                <button type="button" onclick="addCustomProductToCart(event)" class="btn btn-primary" style="width:100%; font-size:15px; padding:14px;">Tambahkan ke Keranjang</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Edit Transaksi -->
     <div class="modal-overlay" id="editTransModal">
         <div class="modal-card">
@@ -583,6 +621,52 @@
       updateCartPreview();
   }
 
+  /* --- FUNGSI KHUSUS UNTUK MENU CUSTOM (SEKALI TRANSAKSI) --- */
+  window.openAddCustomProductModal = function() {
+      document.getElementById('customProdName').value = '';
+      document.getElementById('customProdCategory').value = '';
+      document.getElementById('customProdOwner').value = 'Milik Sendiri';
+      document.getElementById('customProdCut').value = '0';
+      document.getElementById('customProdPrice').value = '';
+      document.getElementById('customProdDesc').value = '';
+      document.getElementById('customProductModal').classList.add('active');
+  }
+
+  window.addCustomProductToCart = function(e) {
+      if (e) e.preventDefault();
+      
+      const name = document.getElementById('customProdName').value.trim();
+      const category = document.getElementById('customProdCategory').value.trim();
+      const owner = document.getElementById('customProdOwner').value.trim();
+      const cutPercent = parseFloat(document.getElementById('customProdCut').value) || 0;
+      const price = parseFloat(document.getElementById('customProdPrice').value);
+      const desc = document.getElementById('customProdDesc').value.trim();
+
+      if (!name || isNaN(price)) {
+          alert("Harap isi Nama Menu dan Harga!");
+          return;
+      }
+
+      // ID unik sementara
+      const customId = 'CUST-' + Date.now();
+
+      // Tambahkan langsung ke keranjang tanpa disimpan ke db.products
+      cart.push({
+          id: customId,
+          name: name + (category ? ` (${category})` : ''),
+          price: price,
+          owner: owner || 'Milik Sendiri',
+          cutPercent: cutPercent,
+          qty: 1,
+          discount: 0,
+          isCustom: true
+      });
+
+      closeModal('customProductModal');
+      updateCartPreview();
+      openCartModal();
+  }
+
   function updateCartPreview() {
       const total = cart.reduce((a, b) => a + (b.price * b.qty) - b.discount, 0);
       document.getElementById('cartBar').style.display = cart.length > 0 ? 'flex' : 'none';
@@ -621,7 +705,7 @@
       list.innerHTML = cart.map(c => `
           <div class="cart-item-row">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                  <span style="font-weight:800; font-size:14px; color:#0f172a;">${c.name}</span>
+                  <span style="font-weight:800; font-size:14px; color:#0f172a;">${c.name} ${c.isCustom ? '<span style="font-size:10px; color:#d97706;">(Custom)</span>' : ''}</span>
                   <div style="display:flex; align-items:center; gap:8px;">
                       <button type="button" class="btn btn-secondary btn-sm" style="padding:4px 12px; font-size:14px;" onclick="updateItemQty('${c.id}', -1)">-</button>
                       <span style="font-size:15px; font-weight:800; color:#0f172a;">${c.qty}</span>
@@ -697,8 +781,10 @@
           const qrisVal = parseFloat(document.getElementById('qrisInput').value) || 0;
 
           cart.forEach(c => {
-              const p = db.products.find(x => String(x.id) === String(c.id));
-              if(p) p.soldCount = (p.soldCount || 0) + c.qty;
+              if(!c.isCustom) {
+                  const p = db.products.find(x => String(x.id) === String(c.id));
+                  if(p) p.soldCount = (p.soldCount || 0) + c.qty;
+              }
           });
 
           const trans = { id: 'TRX-' + Date.now().toString().slice(-4), type: 'sale', title: 'Penjualan (' + cart.map(i => i.name + ' x' + i.qty).join(', ') + ')', items: [...cart], amount: grandTotal, subtotal, discount: totalDiscount, paymentMethod: method, cashAmount: method === 'qris' ? 0 : (method === 'tunai' ? grandTotal : cashVal), qrisAmount: method === 'tunai' ? 0 : (method === 'qris' ? grandTotal : qrisVal), date: today };
