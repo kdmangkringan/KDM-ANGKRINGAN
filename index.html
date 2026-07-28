@@ -732,17 +732,24 @@
       `).join('');
   }
 
+  // --- PERUBAHAN UTAMA PADA FUNGSI EDIT PENDING ---
   window.editPending = function(id) {
       const pending = db.pendingList.find(p => p.id === id);
       if(!pending) return;
+      
+      // Salin item pending ke keranjang & catat ID pending yang sedang di-edit
       cart = JSON.parse(JSON.stringify(pending.items));
       activePendingId = pending.id;
       
-      switchTab('kasir', document.querySelectorAll('.nav-item')[0]);
+      // Atur tipe transaksi ke pending dan isi nama pelanggan
       document.getElementById('transactionType').value = 'pending';
       document.getElementById('customerName').value = pending.customerName;
+      
+      // Perbarui tampilan Cart Bar di bawah
       updateCartPreview();
-      openCartModal();
+      
+      // Alihkan langsung ke tab Kasir agar pengguna bisa memilih produk tambahan
+      switchTab('kasir', document.querySelectorAll('.nav-item')[0]);
   }
 
   window.payPending = function(id) {
