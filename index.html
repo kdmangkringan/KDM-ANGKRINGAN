@@ -583,7 +583,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdd9_uW5_iEPX6JtcIIbrrXQExa_9E_PNrzFStAmC6lIYvS2x3vbRnKGEXnLdCKy2pIw/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpVfCaC2eJVYpzpj2TziVhNSJ9i5yQbREzm9Ymu7DrRVlk-karNgGwAGLhz_U4h5s30w/exec";
 
   let db = { products: [], transactions: [], pendingList: [], initialBalances: {}, withdrawals: [] };
   let cart = [];
@@ -617,32 +617,29 @@
       
       renderAll();
 
-      if (SCRIPT_URL && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbwdd9_uW5_iEPX6JtcIIbrrXQExa_9E_PNrzFStAmC6lIYvS2x3vbRnKGEXnLdCKy2pIw/exec") {
+      if (SCRIPT_URL && SCRIPT_URL.trim() !== "") {
           fetch(SCRIPT_URL)
-              .then(res => res.text())
-              .then(textData => {
-                  try {
-                      const parsed = JSON.parse(textData);
-                      if (parsed && typeof parsed === 'object') {
-                          db.products = parsed.products || db.products || [];
-                          db.transactions = parsed.transactions || db.transactions || [];
-                          db.pendingList = parsed.pendingList || db.pendingList || [];
-                          db.initialBalances = parsed.initialBalances || db.initialBalances || {};
-                          db.withdrawals = parsed.withdrawals || db.withdrawals || [];
-                          saveLocal();
-                      }
-                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Terhubung';
-                  } catch(e) {
-                      document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
+              .then(res => res.json())
+              .then(parsed => {
+                  if (parsed && typeof parsed === 'object') {
+                      db.products = parsed.products || db.products || [];
+                      db.transactions = parsed.transactions || db.transactions || [];
+                      db.pendingList = parsed.pendingList || db.pendingList || [];
+                      db.initialBalances = parsed.initialBalances || db.initialBalances || {};
+                      db.withdrawals = parsed.withdrawals || db.withdrawals || [];
+                      saveLocal();
                   }
+                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Terhubung';
                   renderAll();
               })
               .catch(err => {
                   console.error("Fetch error:", err);
-                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
+                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#b91c1c;"></div> Mode Lokal';
+                  renderAll();
               });
       } else {
           document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
+          renderAll();
       }
   }
 
@@ -661,7 +658,7 @@
   function sendDataToSheet() {
       saveLocal();
 
-      if (!SCRIPT_URL || SCRIPT_URL === "https://script.google.com/macros/s/AKfycbwdd9_uW5_iEPX6JtcIIbrrXQExa_9E_PNrzFStAmC6lIYvS2x3vbRnKGEXnLdCKy2pIw/exec") return;
+      if (!SCRIPT_URL || SCRIPT_URL.trim() === "") return;
 
       document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Menyimpan...';
 
@@ -673,7 +670,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: payload
       }).then(() => {
-          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Tersimpan';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Terhubung';
       }).catch(err => {
           console.error("Save error:", err);
           document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#b91c1c;"></div> Error';
