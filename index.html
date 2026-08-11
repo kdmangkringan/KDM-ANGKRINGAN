@@ -583,7 +583,8 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYvVn9CCL8gNXLuG8vPmABCvnsrKkTHdXdaiAXPwD2DVr4iXWeLPl3tZ7W0gNY518cKQ/exec";
+  // URL Apps Script yang telah diperbarui
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxScI_EZ5BOAh8N-g3QtQzXv_IAZMzUx0KPTESXomhpIw452A9cFNEK8EsqVwhBsD7GUQ/exec";
 
   let db = { products: [], transactions: [], pendingList: [], initialBalances: {}, withdrawals: [] };
   let cart = [];
@@ -617,7 +618,7 @@
       
       renderAll();
 
-      if (SCRIPT_URL && SCRIPT_URL.trim() !== "") {
+      if (SCRIPT_URL) {
           fetch(SCRIPT_URL)
               .then(res => res.json())
               .then(parsed => {
@@ -634,12 +635,10 @@
               })
               .catch(err => {
                   console.error("Fetch error:", err);
-                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#b91c1c;"></div> Mode Lokal';
-                  renderAll();
+                  document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
               });
       } else {
           document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Mode Lokal';
-          renderAll();
       }
   }
 
@@ -658,19 +657,17 @@
   function sendDataToSheet() {
       saveLocal();
 
-      if (!SCRIPT_URL || SCRIPT_URL.trim() === "") return;
+      if (!SCRIPT_URL) return;
 
       document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Menyimpan...';
-
-      const payload = JSON.stringify(db);
 
       fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: payload
+          body: JSON.stringify(db)
       }).then(() => {
-          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Terhubung';
+          document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Tersimpan';
       }).catch(err => {
           console.error("Save error:", err);
           document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot" style="background:#b91c1c;"></div> Error';
@@ -1416,7 +1413,7 @@
       }
 
       withdrawalListEl.innerHTML = filteredWithdrawals.map(w => `
-          <div style="background:#ffffff; border: 1px solid var(--card-border); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="background:#ffffff; border: 1px solid var(--card-border); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify- space-between; align-items: center;">
               <div>
                   <div style="font-size: 13px; font-weight: 800; color: #0f172a;">${w.desc}</div>
                   <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top:2px;">Tanggal: ${w.date}</div>
