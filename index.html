@@ -52,7 +52,7 @@
         .tab-view.active { display: block; }
 
         /* Navigation Bar */
-        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #cbd5e1; display: flex; justify-around; padding: 10px 4px 14px 4px; z-index: 100; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); }
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #cbd5e1; display: flex; justify-content: space-around; padding: 10px 4px 14px 4px; z-index: 100; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #64748b; font-size: 11px; font-weight: 800; cursor: pointer; padding: 6px; flex: 1; border-radius: 10px; }
         .nav-item i { font-size: 18px; }
         .nav-item.active { color: #78350f; background: #fef3c7; }
@@ -379,20 +379,6 @@
                 <h3 style="font-size: 16px; font-weight:800; color:#0f172a;"><i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> Detail Transaksi</h3>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('cartModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
-
-            <!-- KARTU OPSI TANGGAL DI DETAIL TRANSAKSI -->
-            <div class="form-group" style="background: #fffbe2; border: 2px solid var(--primary); padding: 10px; border-radius: var(--radius-sm);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label class="form-label" style="margin-bottom: 0; color: #78350f;">
-                        <i class="fa-solid fa-calendar-day"></i> Tanggal Transaksi
-                    </label>
-                    <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 10px;" onclick="resetCartDateToToday()">
-                        <i class="fa-solid fa-rotate-left"></i> Hari Ini
-                    </button>
-                </div>
-                <input type="date" id="cartTransDate" class="form-control" style="border-color: #fde68a;">
-                <div style="font-size: 10px; font-weight: 700; color: #b45309; margin-top: 4px;">*Otomatis terisi tanggal hari ini, namun dapat diatur manual.</div>
-            </div>
             
             <div id="cartItemsList" style="margin-bottom:12px;"></div>
 
@@ -489,20 +475,6 @@
                 <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('customProductModal')"><i class="fa-solid fa-xmark"></i> Tutup</button>
             </div>
             <div>
-                <!-- KARTU OPSI TANGGAL DI TAMBAH CUSTOM -->
-                <div class="form-group" style="background: #fffbe2; border: 2px solid var(--primary); padding: 10px; border-radius: var(--radius-sm);">
-                    <div style="display: flex; justify- content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label class="form-label" style="margin-bottom: 0; color: #78350f;">
-                            <i class="fa-solid fa-calendar-day"></i> Tanggal Item Custom
-                        </label>
-                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 10px;" onclick="resetCustomDateToToday()">
-                            <i class="fa-solid fa-rotate-left"></i> Hari Ini
-                        </button>
-                    </div>
-                    <input type="date" id="customProdDate" class="form-control" style="border-color: #fde68a;">
-                    <div style="font-size: 10px; font-weight: 700; color: #b45309; margin-top: 4px;">*Otomatis terisi tanggal hari ini, namun dapat diatur manual.</div>
-                </div>
-
                 <div class="form-group">
                     <label class="form-label">Nama Menu</label>
                     <input type="text" id="customProdName" class="form-control" placeholder="Cth: Es Teh Manis Jumbo">
@@ -625,14 +597,6 @@
 
   window.formatRp = function(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
-  function getTodayString() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-  }
-
   function fetchDataFromSheet() {
       document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Loading...';
       
@@ -711,22 +675,12 @@
   }
 
   function initDates() {
-      const today = getTodayString();
+      const today = new Date().toISOString().split('T')[0];
       if(!document.getElementById('filterStartDate').value) document.getElementById('filterStartDate').value = today;
       if(!document.getElementById('filterEndDate').value) document.getElementById('filterEndDate').value = today;
       if(!document.getElementById('buyDate').value) document.getElementById('buyDate').value = today;
       if(!document.getElementById('recapDateFilter').value) document.getElementById('recapDateFilter').value = today;
       if(!document.getElementById('withdrawalDate').value) document.getElementById('withdrawalDate').value = today;
-      if(!document.getElementById('cartTransDate').value) document.getElementById('cartTransDate').value = today;
-      if(!document.getElementById('customProdDate').value) document.getElementById('customProdDate').value = today;
-  }
-
-  window.resetCartDateToToday = function() {
-      document.getElementById('cartTransDate').value = getTodayString();
-  }
-
-  window.resetCustomDateToToday = function() {
-      document.getElementById('customProdDate').value = getTodayString();
   }
 
   window.renderAll = function() {
@@ -782,7 +736,6 @@
   }
 
   window.openAddCustomProductModal = function() {
-      document.getElementById('customProdDate').value = getTodayString();
       document.getElementById('customProdName').value = '';
       document.getElementById('customProdCategory').value = '';
       document.getElementById('customProdOwner').value = 'Milik Sendiri';
@@ -795,7 +748,6 @@
   window.addCustomProductToCart = function(e) {
       if (e) e.preventDefault();
       
-      const customDate = document.getElementById('customProdDate').value || getTodayString();
       const name = document.getElementById('customProdName').value.trim();
       const category = document.getElementById('customProdCategory').value.trim();
       const owner = document.getElementById('customProdOwner').value.trim();
@@ -809,9 +761,6 @@
       }
 
       const customId = 'CUST-' + Date.now();
-
-      // Sesuaikan tanggal transaksi dengan tanggal custom
-      document.getElementById('cartTransDate').value = customDate;
 
       cart.push({
           id: customId,
@@ -863,10 +812,6 @@
   window.openCartModal = function() {
       const list = document.getElementById('cartItemsList');
       if(cart.length === 0) { closeModal('cartModal'); return; }
-
-      if(!document.getElementById('cartTransDate').value) {
-          document.getElementById('cartTransDate').value = getTodayString();
-      }
 
       list.innerHTML = cart.map(c => `
           <div class="cart-item-row">
@@ -923,7 +868,7 @@
       if(cart.length === 0) return;
 
       const transType = document.getElementById('transactionType').value;
-      const transDate = document.getElementById('cartTransDate').value || getTodayString();
+      const today = new Date().toISOString().split('T')[0];
 
       let subtotal = 0, totalDiscount = 0;
       cart.forEach(c => { subtotal += (c.price * c.qty); totalDiscount += (c.discount || 0); });
@@ -933,7 +878,7 @@
           const customer = document.getElementById('customerName').value.trim();
           if (!customer) { alert('Harap isi Nama Pelanggan / Catatan Meja!'); return; }
 
-          const pendingObj = { id: activePendingId ? activePendingId : 'PND-' + Date.now().toString().slice(-4), customerName: customer, items: [...cart], subtotal, discount: totalDiscount, amount: grandTotal, date: transDate };
+          const pendingObj = { id: activePendingId ? activePendingId : 'PND-' + Date.now().toString().slice(-4), customerName: customer, items: [...cart], subtotal, discount: totalDiscount, amount: grandTotal, date: today };
           if (!db.pendingList) db.pendingList = [];
           if (activePendingId) {
               const idx = db.pendingList.findIndex(p => p.id === activePendingId);
@@ -953,7 +898,7 @@
               }
           });
 
-          const trans = { id: 'TRX-' + Date.now().toString().slice(-4), type: 'sale', title: 'Penjualan (' + cart.map(i => i.name + ' x' + i.qty).join(', ') + ')', items: [...cart], amount: grandTotal, subtotal, discount: totalDiscount, paymentMethod: method, cashAmount: method === 'qris' ? 0 : (method === 'tunai' ? grandTotal : cashVal), qrisAmount: method === 'tunai' ? 0 : (method === 'qris' ? grandTotal : qrisVal), date: transDate };
+          const trans = { id: 'TRX-' + Date.now().toString().slice(-4), type: 'sale', title: 'Penjualan (' + cart.map(i => i.name + ' x' + i.qty).join(', ') + ')', items: [...cart], amount: grandTotal, subtotal, discount: totalDiscount, paymentMethod: method, cashAmount: method === 'qris' ? 0 : (method === 'tunai' ? grandTotal : cashVal), qrisAmount: method === 'tunai' ? 0 : (method === 'qris' ? grandTotal : qrisVal), date: today };
 
           if(!db.transactions) db.transactions = [];
           db.transactions.unshift(trans);
@@ -1008,7 +953,6 @@
       cart = JSON.parse(JSON.stringify(pending.items));
       activePendingId = pending.id;
       
-      document.getElementById('cartTransDate').value = pending.date || getTodayString();
       document.getElementById('transactionType').value = 'pending';
       document.getElementById('customerName').value = pending.customerName;
       
@@ -1021,7 +965,6 @@
       if(!pending) return;
       cart = JSON.parse(JSON.stringify(pending.items));
       activePendingId = pending.id;
-      document.getElementById('cartTransDate').value = pending.date || getTodayString();
       document.getElementById('transactionType').value = 'direct';
       document.getElementById('customerName').value = pending.customerName;
       openCartModal();
@@ -1221,7 +1164,7 @@
 
   // --- FUNGSI SIMPAN SALDO AWAL ---
   window.saveInitialBalance = function() {
-      const selectedDate = document.getElementById('recapDateFilter').value || getTodayString();
+      const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
       const val = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
       if (!db.initialBalances) db.initialBalances = {};
       db.initialBalances[selectedDate] = val;
@@ -1236,7 +1179,7 @@
       document.getElementById('withdrawalId').value = '';
       document.getElementById('withdrawalDesc').value = '';
       document.getElementById('withdrawalAmount').value = '';
-      document.getElementById('withdrawalDate').value = document.getElementById('recapDateFilter').value || getTodayString();
+      document.getElementById('withdrawalDate').value = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
       document.getElementById('withdrawalModal').classList.add('active');
   }
 
@@ -1287,7 +1230,7 @@
 
   // --- REKAPAN PENJUALAN DINAMIS & PERFORMA BULANAN ---
   window.renderRekapan = function() {
-      const selectedDate = document.getElementById('recapDateFilter').value || getTodayString();
+      const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
       document.getElementById('recapDateLabel').innerText = selectedDate;
 
       // Set Input Saldo Awal Sesuai Tanggal Terpilih
@@ -1299,7 +1242,7 @@
   }
 
   function renderRekapanCalculations() {
-      const selectedDate = document.getElementById('recapDateFilter').value || getTodayString();
+      const selectedDate = document.getElementById('recapDateFilter').value || new Date().toISOString().split('T')[0];
       const currentMonth = selectedDate.slice(0, 7);
 
       const initialBalance = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
