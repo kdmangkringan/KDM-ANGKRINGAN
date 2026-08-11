@@ -583,7 +583,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtW-3eQ5fn3AG4sUcS1_BV0Y1YmuMyiP8-8XnJb0EinroitrhTdl2syWisSZk0g5f1BQ/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdd9_uW5_iEPX6JtcIIbrrXQExa_9E_PNrzFStAmC6lIYvS2x3vbRnKGEXnLdCKy2pIw/exec";
 
   let db = { products: [], transactions: [], pendingList: [], initialBalances: {}, withdrawals: [] };
   let cart = [];
@@ -617,7 +617,7 @@
       
       renderAll();
 
-      if (SCRIPT_URL && SCRIPT_URL !== "ISI_DENGAN_URL_WEB_APP_ANDA") {
+      if (SCRIPT_URL && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbwdd9_uW5_iEPX6JtcIIbrrXQExa_9E_PNrzFStAmC6lIYvS2x3vbRnKGEXnLdCKy2pIw/exec") {
           fetch(SCRIPT_URL)
               .then(res => res.text())
               .then(textData => {
@@ -661,7 +661,7 @@
   function sendDataToSheet() {
       saveLocal();
 
-      if (!SCRIPT_URL || SCRIPT_URL === "ISI_DENGAN_URL_WEB_APP_ANDA") return;
+      if (!SCRIPT_URL || SCRIPT_URL === "https://script.google.com/macros/s/AKfycbwdd9_uW5_iEPX6JtcIIbrrXQExa_9E_PNrzFStAmC6lIYvS2x3vbRnKGEXnLdCKy2pIw/exec") return;
 
       document.getElementById('syncStatus').innerHTML = '<div class="pulse-dot"></div> Menyimpan...';
 
